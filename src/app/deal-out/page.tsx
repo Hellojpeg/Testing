@@ -3,19 +3,61 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Edit, Zap } from 'lucide-react'; // Zap for AI action, Edit for general editor
+import { Edit, Zap } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Spinner } from '@/components/ui/spinner';
 
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+
 export default function DealOutPage() {
-  const [editorContent, setEditorContent] = useState('');
   const [isLoadingAiAction, setIsLoadingAiAction] = useState(false);
   const { toast } = useToast();
 
+  const editor = useEditor({
+    extensions: [
+      StarterKit.configure({
+        heading: {
+          levels: [1, 2, 3],
+        },
+      }),
+    ],
+    content: `
+      <h2>Hi there,</h2>
+      <p>this is a <em>basic</em> example of <strong>Tiptap</strong>. Sure, there are all kind of basic text styles you’d probably expect from a text editor. But wait until you see the lists:</p>
+      <ul>
+        <li>That’s a bullet list with one …</li>
+        <li>… or two list items.</li>
+      </ul>
+      <p>Isn't that great? And all of that is editable. But wait, there’s more. Let’s try a code block:</p>
+      <pre><code class="language-css">body {
+  display: none;
+}</code></pre>
+      <p>I know, I know, this is impressive. It’s …</p>
+      <blockquote>… what you see is what you get.</blockquote>
+      <p>But that’s not all. The editor is focusable directly via the component instance.</p>
+    `,
+    editorProps: {
+      attributes: {
+        class: 'prose dark:prose-invert prose-sm sm:prose-base lg:prose-lg xl:prose-2xl focus:outline-none p-4 border border-input rounded-md min-h-[400px] bg-card text-card-foreground shadow-sm w-full overflow-auto',
+      },
+    },
+  });
+
   const handleAiAction = async () => {
-    if (!editorContent.trim()) {
+    if (!editor) {
+      toast({
+        title: 'Editor Not Ready',
+        description: 'The editor is not yet available. Please wait a moment and try again.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const content = editor.getHTML(); // or editor.getJSON() for structured data
+
+    if (editor.isEmpty) {
       toast({
         title: 'No Content',
         description: 'Please write something in the editor before using AI actions.',
@@ -23,13 +65,18 @@ export default function DealOutPage() {
       });
       return;
     }
+
     setIsLoadingAiAction(true);
     // Placeholder for AI action
     // In a real scenario, you'd call a Genkit flow here:
-    // e.g., const result = await yourAiRefinementFlow({ text: editorContent });
-    // setEditorContent(result.refinedText);
+    // e.g., const result = await yourAiRefinementFlow({ htmlContent: content });
+    // editor.commands.setContent(result.refinedHtmlContent);
     await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate AI processing
-    setEditorContent(editorContent + "\n\n[AI Refinement Applied - Placeholder]");
+    
+    // Example: Appending a note to the content. 
+    // For real refinement, you'd likely replace or selectively update.
+    editor.commands.insertContentAt(editor.state.doc.content.size, '<p>[AI Refinement Applied - Placeholder]</p>');
+
     toast({
       title: 'AI Action Complete',
       description: 'Content has been processed (placeholder action).',
@@ -57,14 +104,14 @@ export default function DealOutPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Textarea
-            value={editorContent}
-            onChange={(e) => setEditorContent(e.target.value)}
-            placeholder="Start typing your brilliant ideas here..."
-            className="min-h-[400px] text-base border-input focus:border-primary shadow-sm"
-            rows={15}
-          />
-          <Button onClick={handleAiAction} disabled={isLoadingAiAction}>
+          {/* Placeholder for Tiptap Toolbar if you add one */}
+          {/* <div className="flex space-x-2 border-b pb-2 mb-2">...toolbar buttons...</div> */}
+          
+          <div className="w-full">
+            <EditorContent editor={editor} />
+          </div>
+          
+          <Button onClick={handleAiAction} disabled={isLoadingAiAction || !editor?.isEditable}>
             {isLoadingAiAction ? <Spinner size="sm" className="mr-2" /> : <Zap className="mr-2 h-4 w-4" />}
             {isLoadingAiAction ? 'Processing...' : 'AI Refine (Placeholder)'}
           </Button>
