@@ -3,7 +3,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { AppWindow, ChefHat, ClipboardEdit, ArrowRight } from 'lucide-react';
+import { AppWindow, ChefHat, ClipboardEdit, ArrowRight, Edit } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -24,11 +24,19 @@ const apps = [
     imageSrc: "https://placehold.co/600x400.png",
     imageHint: "project planning document",
   },
+  {
+    title: "Deal Out - AI Editor",
+    description: "A next-generation word processor with AI-assisted writing, refinement, and composition tools.",
+    href: "/deal-out",
+    icon: <Edit className="h-8 w-8 mb-2 text-primary" />,
+    imageSrc: "https://placehold.co/600x400.png",
+    imageHint: "writing document editor",
+  },
   { 
     title: "Hangout Helper", 
     description: "Discover exciting hangout ideas with AI-powered suggestions, saved lists, and scavenger hunt generation.", 
     href: "/",
-    icon: <AppWindow className="h-8 w-8 mb-2 text-primary" />, // Could use a more specific icon like PartyPopper if desired
+    icon: <AppWindow className="h-8 w-8 mb-2 text-primary" />,
     imageSrc: "https://placehold.co/600x400.png",
     imageHint: "friends fun",
   },

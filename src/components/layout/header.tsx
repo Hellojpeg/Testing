@@ -2,11 +2,11 @@
 'use client';
 
 import Link from 'next/link';
-import { PartyPopper, Home, Compass, ChefHat, ClipboardEdit, Menu } from 'lucide-react';
+import { PartyPopper, Home, Compass, ChefHat, ClipboardEdit, Menu, Edit } from 'lucide-react';
 import * as React from 'react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from '@/components/ui/sheet'; // Added SheetHeader and SheetTitle
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from '@/components/ui/sheet';
 
 export function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -15,6 +15,7 @@ export function Header() {
     { href: "/", label: "Home", icon: <Home className="h-5 w-5" /> },
     { href: "/meal-creator", label: "Meal Creator", icon: <ChefHat className="h-5 w-5" /> },
     { href: "/project-maker", label: "Project Maker", icon: <ClipboardEdit className="h-5 w-5" /> },
+    { href: "/deal-out", label: "Deal Out Editor", icon: <Edit className="h-5 w-5" /> },
     { href: "/other-apps", label: "Other Apps", icon: <Compass className="h-5 w-5" /> },
   ];
 
