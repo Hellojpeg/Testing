@@ -19,47 +19,61 @@ export default function HangoutHelperPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [aiSuggestions, setAiSuggestions] = useState<HangoutSuggestion[]>([]);
   const [savedSuggestions, setSavedSuggestions] = useState<HangoutSuggestion[]>([]);
-  const [pastHangouts, setPastHangouts] = useState<string[]>([]); // Store text of past hangouts
+  const [pastHangouts, setPastHangouts] = useState<string[]>([]);
   const [userQuery, setUserQuery] = useState('');
+  const [isClient, setIsClient] = useState(false); // For hydration fix
 
   const { toast } = useToast();
 
-  // Load from localStorage on mount
+  // Load from localStorage on mount and set isClient to true
   useEffect(() => {
+    setIsClient(true);
     try {
       const storedSaved = localStorage.getItem('hangoutHelper_savedSuggestions');
-      if (storedSaved) setSavedSuggestions(JSON.parse(storedSaved));
-      
+      if (storedSaved) {
+        setSavedSuggestions(JSON.parse(storedSaved));
+      }
       const storedPast = localStorage.getItem('hangoutHelper_pastHangouts');
-      if (storedPast) setPastHangouts(JSON.parse(storedPast));
+      if (storedPast) {
+        setPastHangouts(JSON.parse(storedPast));
+      }
     } catch (error) {
       console.error("Error loading from localStorage:", error);
+      // Ensure toast is called only after mount if it relies on context/providers
+      // This useEffect guarantees mount, so toast here should be safe.
       toast({ title: "Error", description: "Could not load saved data.", variant: "destructive" });
     }
   }, [toast]);
 
   // Save savedSuggestions to localStorage
   useEffect(() => {
-    try {
-      localStorage.setItem('hangoutHelper_savedSuggestions', JSON.stringify(savedSuggestions));
-    } catch (error) {
-      console.error("Error saving to localStorage (savedSuggestions):", error);
+    if (isClient) { // Only run on client
+      try {
+        localStorage.setItem('hangoutHelper_savedSuggestions', JSON.stringify(savedSuggestions));
+      } catch (error) {
+        console.error("Error saving to localStorage (savedSuggestions):", error);
+      }
     }
-  }, [savedSuggestions]);
+  }, [savedSuggestions, isClient]);
 
   // Save pastHangouts to localStorage
   useEffect(() => {
-    try {
-      localStorage.setItem('hangoutHelper_pastHangouts', JSON.stringify(pastHangouts));
-    } catch (error) {
-      console.error("Error saving to localStorage (pastHangouts):", error);
+    if (isClient) { // Only run on client
+      try {
+        localStorage.setItem('hangoutHelper_pastHangouts', JSON.stringify(pastHangouts));
+      } catch (error) {
+        console.error("Error saving to localStorage (pastHangouts):", error);
+      }
     }
-  }, [pastHangouts]);
+  }, [pastHangouts, isClient]);
 
   const handleGetSuggestions = useCallback(async () => {
     setIsLoading(true);
-    setAiSuggestions([]); // Clear previous AI suggestions
+    setAiSuggestions([]); 
     try {
+      // These values are generated on the client when the function is called.
+      // This is fine as long as the function call itself is deferred past initial hydration
+      // for any auto-triggered calls.
       const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       const weather = "Pleasant, " + (Math.floor(Math.random() * 15) + 15) + "°C"; 
       const trendingSocialActivities = ["Local market exploration", "Park picnic", "New cafe visit", "Board game night", "Street art tour"].sort(() => 0.5 - Math.random()).slice(0,2).join(', ');
@@ -76,7 +90,7 @@ export default function HangoutHelperPage() {
 
       if (result.suggestions && result.suggestions.length > 0) {
         const newSuggestions = result.suggestions.map((text, index) => ({
-          id: `ai-${Date.now()}-${index}`,
+          id: `ai-${Date.now()}-${index}`, // Date.now() here is fine as it's for a new ID post-interaction
           text,
           isSaved: savedSuggestions.some(s => s.text === text),
           hasHappened: false,
@@ -116,12 +130,23 @@ export default function HangoutHelperPage() {
     setSavedSuggestions(prev => {
         const targetSuggestion = prev.find(s => s.id === suggestionId);
         if (targetSuggestion) { 
-            return prev.filter(s => s.id !== suggestionId);
+            // If it was saved and now we are unsaving, remove it.
+            // If it wasn't saved and now we are saving, this logic is handled by the setAiSuggestions effect.
+            // This specific block addresses removing from savedSuggestions if it was toggled off from an AI suggestion card
+            // that was previously saved.
+             if (targetSuggestion.isSaved === false) { // Explicitly check if it's marked as unsaved from AI list
+                 return prev.filter(s => s.id !== suggestionId);
+             }
+        }
+        // This handles removing a saved suggestion directly from the saved list
+        const aiSuggestion = aiSuggestions.find(s => s.id === suggestionId);
+        if (!aiSuggestion || !aiSuggestion.isSaved) {
+             return prev.filter(s => s.id !== suggestionId);
         }
         return prev; 
     });
 
-  }, []);
+  }, [aiSuggestions]);
 
   const handleMarkAsHappened = useCallback((suggestionId: string) => {
     let suggestionText = "";
@@ -129,7 +154,7 @@ export default function HangoutHelperPage() {
     const updateAndFindText = (s: HangoutSuggestion) => {
       if (s.id === suggestionId) {
         suggestionText = s.text;
-        return { ...s, hasHappened: true, isSaved: false };
+        return { ...s, hasHappened: true, isSaved: false }; // Also unsave when marked as happened
       }
       return s;
     };
@@ -138,7 +163,7 @@ export default function HangoutHelperPage() {
     setSavedSuggestions(prev => prev.filter(s => s.id !== suggestionId)); 
 
     if (suggestionText && !pastHangouts.includes(suggestionText)) {
-      setPastHangouts(prev => [suggestionText, ...prev]); 
+      setPastHangouts(prev => [suggestionText, ...prev].slice(0, 50)); // Limit past hangouts stored
       toast({ title: "Awesome!", description: `Marked "${suggestionText.substring(0,30)}..." as happened.`});
     }
   }, [pastHangouts, toast]);
@@ -150,7 +175,7 @@ export default function HangoutHelperPage() {
       return s.id !== suggestionId;
     }));
     setSavedSuggestions(prev => prev.filter(s => {
-      if (s.id === suggestionId && !deletedText) deletedText = s.text;
+      if (s.id === suggestionId && !deletedText) deletedText = s.text; // Ensure text is captured if deleted from saved list
       return s.id !== suggestionId;
     }));
     if (deletedText) {
@@ -158,11 +183,14 @@ export default function HangoutHelperPage() {
     }
   }, [toast]);
 
+  // Fetch initial suggestions if everything is empty, only after client has mounted
   useEffect(() => {
-    if (aiSuggestions.length === 0 && savedSuggestions.length === 0 && pastHangouts.length === 0) {
-      handleGetSuggestions();
+    if (isClient) {
+      if (aiSuggestions.length === 0 && savedSuggestions.length === 0 && pastHangouts.length === 0 && !isLoading) {
+        handleGetSuggestions();
+      }
     }
-  }, []);
+  }, [isClient, aiSuggestions.length, savedSuggestions.length, pastHangouts.length, handleGetSuggestions, isLoading]);
 
 
   return (
@@ -193,12 +221,12 @@ export default function HangoutHelperPage() {
         onToggleSave={handleToggleSave}
         onMarkAsHappened={handleMarkAsHappened}
         onDelete={handleDeleteSuggestion}
-        emptyStateMessage={isLoading ? "Loading..." : "No new suggestions right now. Click the button above to generate some!"}
+        emptyStateMessage={isLoading && !aiSuggestions.length ? "Loading..." : "No new suggestions right now. Click the button above to generate some!"}
         icon={<Lightbulb className="w-8 h-8" />}
-        isLoading={isLoading}
+        isLoading={isLoading && !aiSuggestions.length} // Show skeletons only when loading and no suggestions yet
       />
 
-      {savedSuggestions.length > 0 && (
+      {isClient && savedSuggestions.filter(s => !s.hasHappened).length > 0 && (
         <>
           <Separator />
           <SuggestionList
@@ -213,7 +241,7 @@ export default function HangoutHelperPage() {
         </>
       )}
       
-      {(pastHangouts.length > 0 || aiSuggestions.some(s => s.hasHappened)) && (
+      {isClient && (pastHangouts.length > 0 || aiSuggestions.some(s => s.hasHappened)) && (
          <>
           <Separator />
           <PastHangoutsList hangouts={[
