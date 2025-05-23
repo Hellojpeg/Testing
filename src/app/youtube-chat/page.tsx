@@ -9,15 +9,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import { Spinner } from '@/components/ui/spinner';
-import { Youtube, MessageCircle, Send, Loader2, Link as LinkIcon, PlayCircle, XCircle } from 'lucide-react';
+import { Youtube, MessageCircle, Send, Loader2, Link as LinkIcon, PlayCircle, XCircle, Info } from 'lucide-react';
 import type { ChatMessage } from '@/lib/types';
 import { fetchYoutubeChatResponseAction, getVideoTranscriptAction } from '@/lib/actions';
-
-// const PLACEHOLDER_TRANSCRIPT = "This is a placeholder transcript for the YouTube video. In a real application, this content would be dynamically fetched and processed from the provided YouTube URL. For now, you can ask questions about general topics, or pretend this is the video's content. For example: What is this video about? (AI will respond based on this placeholder text). This placeholder mentions topics like AI, Next.js, and building applications.";
 
 export default function YouTubeVideoChatPage() {
   const [youtubeUrl, setYoutubeUrl] = useState('');
   const [videoContext, setVideoContext] = useState<string | null>(null);
+  const [videoTitleForContext, setVideoTitleForContext] = useState<string | null>(null); // To store a user-friendly title if possible
   const [isLoadingVideo, setIsLoadingVideo] = useState(false);
   
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
@@ -46,8 +45,24 @@ export default function YouTubeVideoChatPage() {
     }
 
     setIsLoadingVideo(true);
-    setVideoContext(null); // Clear previous context
+    setVideoContext(null); 
+    setVideoTitleForContext(null);
     setChatHistory([]); 
+
+    // Simple way to try and get a title from URL for context, can be improved
+    try {
+        const urlObj = new URL(youtubeUrl);
+        if (urlObj.hostname === 'youtu.be') {
+            setVideoTitleForContext(urlObj.pathname.substring(1));
+        } else if (urlObj.hostname.includes('youtube.com') && urlObj.searchParams.has('v')) {
+            setVideoTitleForContext(urlObj.searchParams.get('v'));
+        } else {
+            setVideoTitleForContext('the video');
+        }
+    } catch (e) {
+        setVideoTitleForContext('the video');
+    }
+
 
     const result = await getVideoTranscriptAction(youtubeUrl);
 
@@ -63,15 +78,13 @@ export default function YouTubeVideoChatPage() {
         description: result.error || 'Could not load transcript for the video.',
         variant: 'destructive',
       });
-      // Optionally, keep videoContext null or set a specific error message
-      // For now, videoContext will remain null if transcript fetching fails, disabling chat.
     }
     
     setIsLoadingVideo(false);
   }, [youtubeUrl, toast]);
 
-  const handleSendMessage = useCallback(async () => {
-    if (!currentUserMessage.trim() || !videoContext) {
+  const prepareAndSendMessage = useCallback(async (messageContent: string, isUserInitiated: boolean = true) => {
+    if (!messageContent.trim() || !videoContext) {
       if (!videoContext) {
         toast({
           title: 'No Video Loaded',
@@ -82,16 +95,18 @@ export default function YouTubeVideoChatPage() {
       return;
     }
 
-    const newUserMessage: ChatMessage = { role: 'user', content: currentUserMessage };
-    setChatHistory(prev => [...prev, newUserMessage]);
-    setCurrentUserMessage('');
+    const newMessage: ChatMessage = { role: 'user', content: messageContent };
+    setChatHistory(prev => [...prev, newMessage]);
+    if (isUserInitiated) {
+        setCurrentUserMessage('');
+    }
     setIsSendingMessage(true);
 
     try {
       const response = await fetchYoutubeChatResponseAction({
-        videoTranscript: videoContext, // This will be the actual transcript
-        userMessage: newUserMessage.content,
-        chatHistory: chatHistory, 
+        videoTranscript: videoContext,
+        userMessage: newMessage.content,
+        chatHistory: chatHistory, // Send history *before* this new user message for context
       });
 
       const aiResponse: ChatMessage = { role: 'model', content: response.aiResponse };
@@ -103,14 +118,39 @@ export default function YouTubeVideoChatPage() {
         description: 'Could not get a response from the AI. Please try again.',
         variant: 'destructive',
       });
-      setChatHistory(prev => prev.filter(msg => msg !== newUserMessage));
+      // Optionally remove the user's message if AI fails
+      // setChatHistory(prev => prev.filter(msg => msg !== newMessage));
     } finally {
       setIsSendingMessage(false);
     }
-  }, [currentUserMessage, videoContext, chatHistory, toast]);
+  }, [videoContext, chatHistory, toast]);
+
+
+  const handleSendMessage = useCallback(() => {
+    prepareAndSendMessage(currentUserMessage, true);
+  }, [currentUserMessage, prepareAndSendMessage]);
+
+
+  const handleGetVideoInfo = useCallback(() => {
+    if (!videoContext) {
+      toast({ title: 'No Video Loaded', description: 'Please load a video transcript first.', variant: 'destructive' });
+      return;
+    }
+    const title = videoTitleForContext || "this video";
+    const predefinedPrompt = `Regarding the transcript for ${title}:
+1. Confirm that you are working with a provided transcript.
+2. What are the main topics or key points discussed in this transcript?
+3. What is the general tone or style of the content according to the transcript?
+4. Based on the text, can you infer the primary language of the transcript?`;
+    
+    prepareAndSendMessage(predefinedPrompt, false);
+
+  }, [videoContext, videoTitleForContext, prepareAndSendMessage, toast]);
+
 
   const clearVideoContext = () => {
     setVideoContext(null);
+    setVideoTitleForContext(null);
     setYoutubeUrl('');
     setChatHistory([]);
     toast({ title: 'Video context cleared', description: 'Enter a new URL to load another video.'});
@@ -133,7 +173,7 @@ export default function YouTubeVideoChatPage() {
           YouTube Video Chat
         </h1>
         <p className="text-muted-foreground max-w-xl mx-auto">
-          Enter a YouTube video link, and chat with an AI about its content (requires available transcript).
+          Enter a YouTube video link to fetch its transcript (if available), then chat with an AI about its content.
         </p>
       </section>
 
@@ -157,7 +197,7 @@ export default function YouTubeVideoChatPage() {
               disabled={isLoadingVideo || !!videoContext}
               className="text-base flex-grow"
             />
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
               <Button 
                 onClick={handleLoadVideo} 
                 disabled={isLoadingVideo || !!videoContext || !youtubeUrl.trim()} 
@@ -179,12 +219,18 @@ export default function YouTubeVideoChatPage() {
       {videoContext && (
         <Card className="shadow-md border">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-2xl">
-              <MessageCircle className="h-6 w-6 text-primary" />
-              Chat with the Video
-            </CardTitle>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-2xl">
+                <MessageCircle className="h-6 w-6 text-primary" />
+                Chat with {videoTitleForContext || "the Video"}
+                </CardTitle>
+                <Button variant="outline" size="sm" onClick={handleGetVideoInfo} disabled={isSendingMessage || !videoContext}>
+                    <Info className="mr-2 h-4 w-4" />
+                    Get Transcript Summary
+                </Button>
+            </div>
             <CardDescription>
-              Ask questions based on the video's transcript.
+              Ask questions based on the video's transcript, or get a quick summary.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -195,7 +241,7 @@ export default function YouTubeVideoChatPage() {
               {chatHistory.map((msg, index) => (
                 <div
                   key={index}
-                  className={`mb-3 p-3 rounded-lg max-w-[80%] ${
+                  className={`mb-3 p-3 rounded-lg max-w-[80%] break-words ${ // Added break-words
                     msg.role === 'user'
                       ? 'bg-primary text-primary-foreground ml-auto'
                       : 'bg-secondary text-secondary-foreground mr-auto'
@@ -221,7 +267,7 @@ export default function YouTubeVideoChatPage() {
                 onKeyDown={(e) => {
                     if (e.key === 'Enter' && !e.shiftKey) {
                         e.preventDefault();
-                        handleSendMessage();
+                        if (currentUserMessage.trim()) handleSendMessage();
                     }
                 }}
                 disabled={isSendingMessage || !videoContext}
@@ -242,12 +288,21 @@ export default function YouTubeVideoChatPage() {
             <p className="text-muted-foreground mt-4">Fetching video transcript, please wait...</p>
          </div>
        )}
-       {!isLoadingVideo && !videoContext && youtubeUrl && ( // Show this if URL was entered but context is null (e.g. after failed load or clear)
+       {!isLoadingVideo && !videoContext && youtubeUrl.trim() && (
          <Card className="shadow-md border">
             <CardContent className="p-6 text-center">
               <p className="text-muted-foreground">
-                Enter a YouTube URL and click "Load Video" to begin chatting.
-                If a video was loaded but no transcript was found, this chat will be disabled.
+                Could not load video context. The video might not have a transcript, it might be private, or an error occurred.
+                <br />Try a different video or check the console for more details.
+              </p>
+            </CardContent>
+         </Card>
+       )}
+       {!youtubeUrl.trim() && !videoContext && (
+         <Card className="shadow-md border">
+            <CardContent className="p-6 text-center">
+              <p className="text-muted-foreground">
+                Enter a YouTube URL above and click "Load Video" to begin chatting.
               </p>
             </CardContent>
          </Card>
@@ -255,3 +310,4 @@ export default function YouTubeVideoChatPage() {
     </div>
   );
 }
+
