@@ -11,21 +11,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { fetchMealSuggestionsAction } from '@/lib/actions';
-import type { MealRecipe, GenerateMealInput } from '@/lib/types'; // Assuming GenerateMealInput might be moved to types or defined here
+import type { MealRecipe } from '@/lib/types';
+import type { GenerateMealInput } from '@/ai/flows/generate-meal-flow';
 import { Spinner } from '@/components/ui/spinner';
 import { ChefHat, Sparkles, Settings2, Utensils } from 'lucide-react';
-
-// If GenerateMealInput is not in types.ts, define it here or import from flow
-// For now, let's assume it might be imported or defined based on src/ai/flows/generate-meal-flow.ts
-// type GenerateMealInput = {
-//   ingredients: string;
-//   isAdvancedMode?: boolean;
-//   caloricGoal?: number;
-//   macros?: { protein?: number; carbs?: number; fat?: number };
-//   flavorPalette?: string;
-//   region?: string;
-//   mealType?: string;
-// };
 
 
 export default function MealCreatorPage() {
@@ -37,7 +26,7 @@ export default function MealCreatorPage() {
   const [fat, setFat] = useState<string>('');
   const [flavorPalette, setFlavorPalette] = useState('');
   const [region, setRegion] = useState('');
-  const [mealType, setMealType] = useState('');
+  const [mealType, setMealType] = useState(''); // Initial value for placeholder
 
   const [isLoading, setIsLoading] = useState(false);
   const [mealSuggestions, setMealSuggestions] = useState<MealRecipe[]>([]);
@@ -71,7 +60,8 @@ export default function MealCreatorPage() {
       }
       if (flavorPalette.trim()) input.flavorPalette = flavorPalette.trim();
       if (region.trim()) input.region = region.trim();
-      if (mealType) input.mealType = mealType;
+      // If mealType is "any" or empty, don't send it to the AI (treat as no preference)
+      if (mealType && mealType !== "any") input.mealType = mealType;
     }
 
     try {
@@ -83,6 +73,7 @@ export default function MealCreatorPage() {
           description: `${result.meals.length} delicious ideas ready for you.`,
         });
       } else {
+        setMealSuggestions([]);
         toast({
           title: 'No Meals Found',
           description: 'Could not generate meal suggestions with the given input. Try adjusting your criteria.',
@@ -170,7 +161,7 @@ export default function MealCreatorPage() {
                       <SelectValue placeholder="Any" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Any</SelectItem>
+                      <SelectItem value="any">Any</SelectItem> {/* Changed value here */}
                       <SelectItem value="Breakfast">Breakfast</SelectItem>
                       <SelectItem value="Lunch">Lunch</SelectItem>
                       <SelectItem value="Dinner">Dinner</SelectItem>
