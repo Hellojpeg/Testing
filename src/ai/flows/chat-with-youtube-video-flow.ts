@@ -52,8 +52,7 @@ const prompt = ai.definePrompt({
 Chat History:
 {{#if chatHistory}}
   {{#each chatHistory}}
-    {{#if (eq this.role "user")}}User: {{this.content}}{{/if}}
-    {{#if (eq this.role "model")}}AI: {{this.content}}{{/if}}
+    {{this.role}}: {{this.content}}
   {{/each}}
 {{else}}
 No previous messages.
@@ -73,21 +72,10 @@ const chatWithYoutubeVideoFlow = ai.defineFlow(
   },
   async (input) => {
     // Construct the prompt for Gemini, including history if available
-    const historyForGemini = input.chatHistory?.map(msg => ({
-        role: msg.role,
-        parts: [{ text: msg.content }],
-    })) || [];
-
-    // This specific request structure isn't directly used by ai.definePrompt when a system prompt and template are defined.
-    // The input 'input' is passed directly to the prompt function.
-    // Keeping this commented out as it might have been for a direct model.generateContent call.
-    // const generateRequest = {
-    //     prompt: `Video Transcript Context:\n---\n${input.videoTranscript}\n---\n\nUser's latest message: ${input.userMessage}`,
-    //     history: historyForGemini, // Pass history correctly
-    //     config: { // Example: Lower temperature for more factual answers from transcript
-    //         temperature: 0.3,
-    //     },
-    // };
+    // const historyForGemini = input.chatHistory?.map(msg => ({ // This is not directly used by ai.definePrompt in this configuration
+    //     role: msg.role,
+    //     parts: [{ text: msg.content }],
+    // })) || [];
     
     const {output} = await prompt(input); // Use the defined prompt object
 
@@ -97,3 +85,4 @@ const chatWithYoutubeVideoFlow = ai.defineFlow(
     return output;
   }
 );
+
