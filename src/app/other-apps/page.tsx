@@ -3,7 +3,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { AppWindow, ChefHat, ClipboardEdit, ArrowRight, Edit } from 'lucide-react';
+import { AppWindow, ChefHat, ClipboardEdit, ArrowRight, Edit, Youtube } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -32,6 +32,14 @@ const apps = [
     imageSrc: "https://placehold.co/600x400.png",
     imageHint: "writing document editor",
   },
+  {
+    title: "YouTube Video Chat",
+    description: "Enter a YouTube video link and chat with an AI about its content (uses placeholder transcript for now).",
+    href: "/youtube-chat",
+    icon: <Youtube className="h-8 w-8 mb-2 text-primary" />,
+    imageSrc: "https://placehold.co/600x400.png",
+    imageHint: "video chat play",
+  },
   { 
     title: "Hangout Helper", 
     description: "Discover exciting hangout ideas with AI-powered suggestions, saved lists, and scavenger hunt generation.", 
@@ -56,7 +64,7 @@ export default function OtherAppsPage() {
       </section>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {apps.map((app, index) => (
+        {apps.sort((a,b) => a.title.localeCompare(b.title)).map((app, index) => (
           <Card key={index} className="shadow-md hover:shadow-lg transition-shadow duration-300 ease-in-out border flex flex-col">
             <CardHeader className="items-center text-center">
               {app.icon}

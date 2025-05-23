@@ -2,7 +2,7 @@
 'use client';
 
 import Link from 'next/link';
-import { PartyPopper, Home, Compass, ChefHat, ClipboardEdit, Menu, Edit } from 'lucide-react';
+import { PartyPopper, Home, Compass, ChefHat, ClipboardEdit, Menu, Edit, Youtube as YoutubeIcon } from 'lucide-react';
 import * as React from 'react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -16,6 +16,7 @@ export function Header() {
     { href: "/meal-creator", label: "Meal Creator", icon: <ChefHat className="h-5 w-5" /> },
     { href: "/project-maker", label: "Project Maker", icon: <ClipboardEdit className="h-5 w-5" /> },
     { href: "/deal-out", label: "Deal Out Editor", icon: <Edit className="h-5 w-5" /> },
+    { href: "/youtube-chat", label: "YouTube Chat", icon: <YoutubeIcon className="h-5 w-5" /> },
     { href: "/other-apps", label: "Other Apps", icon: <Compass className="h-5 w-5" /> },
   ];
 
