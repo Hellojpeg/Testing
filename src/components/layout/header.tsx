@@ -6,7 +6,7 @@ import { PartyPopper, Home, Compass, ChefHat, ClipboardEdit, Menu } from 'lucide
 import * as React from 'react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger, SheetClose } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from '@/components/ui/sheet'; // Added SheetHeader and SheetTitle
 
 export function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -48,7 +48,10 @@ export function Header() {
               </Button>
             </SheetTrigger>
             <SheetContent side="right" className="w-full max-w-xs sm:max-w-sm bg-card">
-              <div className="p-6 pt-10">
+              <SheetHeader className="mb-4 p-4 border-b">
+                <SheetTitle className="text-xl text-primary">Navigation Menu</SheetTitle>
+              </SheetHeader>
+              <div className="p-6 pt-2">
                 <nav className="flex flex-col gap-4">
                   {navLinks.map((link) => (
                     <SheetClose key={link.href} asChild>
