@@ -10,56 +10,73 @@ import { fetchPmdAction } from '@/lib/actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
+import { Label } from '@/components/ui/label'; // Keep if used, though FormLabel is preferred in Form
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
 import { Spinner } from '@/components/ui/spinner';
-import { ClipboardEdit, FileText, Download, Sparkles, ArrowLeft, ArrowRight } from 'lucide-react';
+import { ClipboardEdit, FileText, Download, Sparkles, ArrowLeft, ArrowRight, Lightbulb, Edit3, RotateCcw, CheckSquare } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 
-const formSteps = [
+const aiFormSteps = [
   {
+    id: "basics",
     title: "Project Basics",
     description: "Let's start with the foundational details of your project.",
     fields: ["projectTitle", "industry"] as const,
+    icon: <ClipboardEdit className="h-5 w-5" />,
   },
   {
+    id: "objective",
     title: "Core Objective",
     description: "What is the primary goal you aim to achieve?",
     fields: ["projectGoal"] as const,
+    icon: <CheckSquare className="h-5 w-5" />,
   },
   {
+    id: "scope",
     title: "Scope Definition",
     description: "Detail what the project will and will not include.",
     fields: ["projectScope"] as const,
+    icon: <CheckSquare className="h-5 w-5" />,
   },
   {
+    id: "stakeholders",
     title: "Stakeholders",
     description: "Identify the key people involved and their roles.",
     fields: ["keyStakeholders"] as const,
+    icon: <CheckSquare className="h-5 w-5" />,
   },
   {
+    id: "timings_finances",
     title: "Timings & Finances (Optional)",
     description: "Outline any estimated timelines or budget considerations.",
     fields: ["timeline", "budget"] as const,
+    icon: <CheckSquare className="h-5 w-5" />,
   },
   {
+    id: "risks_success",
     title: "Risks & Success (Optional)",
     description: "Consider potential challenges and how you'll measure success.",
     fields: ["knownRisks", "successMetrics"] as const,
+    icon: <CheckSquare className="h-5 w-5" />,
   },
   {
+    id: "final_touches",
     title: "Final Touches (Optional)",
     description: "Add any other relevant information or specific sections.",
     fields: ["additionalInfo"] as const,
+    icon: <CheckSquare className="h-5 w-5" />,
   },
 ];
 
+type CreationMode = 'undecided' | 'ai' | 'manual';
+
 export default function ProjectMakerPage() {
+  const [creationMode, setCreationMode] = useState<CreationMode>('undecided');
+  const [currentAiFormStep, setCurrentAiFormStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [pmdContent, setPmdContent] = useState<string | null>(null);
-  const [currentStep, setCurrentStep] = useState(0);
   const { toast } = useToast();
 
   const form = useForm<GeneratePmdInput>({
@@ -78,7 +95,7 @@ export default function ProjectMakerPage() {
     },
   });
 
-  const onSubmit = async (data: GeneratePmdInput) => {
+  const onSubmitAiForm = async (data: GeneratePmdInput) => {
     setIsLoading(true);
     setPmdContent(null);
     try {
@@ -92,7 +109,7 @@ export default function ProjectMakerPage() {
       } else {
         toast({
           title: 'Generation Failed',
-          description: 'Could not generate the PMD. Please check your inputs or try again.',
+          description: result.pmdContent || 'Could not generate the PMD. Please check your inputs or try again.',
           variant: 'destructive',
         });
       }
@@ -112,12 +129,13 @@ export default function ProjectMakerPage() {
     if (!pmdContent || !form.getValues('projectTitle')) {
       toast({
         title: 'Cannot Export',
-        description: 'No PMD content to export or project title is missing.',
+        description: 'No PMD content to export or project title is missing (if AI generated).',
         variant: 'destructive',
       });
       return;
     }
-    const filename = `${form.getValues('projectTitle').replace(/\s+/g, '_')}_PMD.md`;
+    const projectTitle = form.getValues('projectTitle') || 'Manual_Project';
+    const filename = `${projectTitle.replace(/\s+/g, '_')}_PMD.md`;
     const blob = new Blob([pmdContent], { type: 'text/markdown;charset=utf-8;' });
     const link = document.createElement('a');
     if (link.download !== undefined) {
@@ -134,47 +152,54 @@ export default function ProjectMakerPage() {
         description: `${filename} has been downloaded.`,
       });
     } else {
-        toast({
-            title: 'Export Failed',
-            description: 'Your browser does not support direct file downloads.',
-            variant: 'destructive',
-          });
+      toast({
+        title: 'Export Failed',
+        description: 'Your browser does not support direct file downloads.',
+        variant: 'destructive',
+      });
     }
   };
 
-  const handleNext = async () => {
-    const currentFields = formSteps[currentStep].fields;
-    // Trigger validation for current step's fields
+  const handleSetMode = (mode: CreationMode) => {
+    setCreationMode(mode);
+    setCurrentAiFormStep(0);
+    setPmdContent(null);
+    setIsLoading(false);
+    if (mode === 'ai') {
+      form.reset(); // Reset form for AI mode
+    }
+  };
+
+  const handleAiFormNext = async () => {
+    const currentFields = aiFormSteps[currentAiFormStep].fields;
     const isValid = await form.trigger(currentFields);
-    
     if (isValid) {
-      if (currentStep < formSteps.length - 1) {
-        setCurrentStep(currentStep + 1);
+      if (currentAiFormStep < aiFormSteps.length - 1) {
+        setCurrentAiFormStep(currentAiFormStep + 1);
       }
     } else {
-      // Optionally, notify user about validation errors, though react-hook-form shows them
       toast({
         title: "Hold Up!",
         description: "Please fill in all required fields for this step before proceeding.",
-        variant: "destructive"
-      })
+        variant: "destructive",
+      });
     }
   };
 
-  const handlePrevious = () => {
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
+  const handleAiFormPrevious = () => {
+    if (currentAiFormStep > 0) {
+      setCurrentAiFormStep(currentAiFormStep - 1);
     }
   };
 
-  const progressValue = ((currentStep + 1) / formSteps.length) * 100;
+  const progressValue = ((currentAiFormStep + 1) / aiFormSteps.length) * 100;
 
-  const renderStepContent = () => {
-    const stepData = formSteps[currentStep];
+  const renderAiFormStepContent = () => {
+    const stepData = aiFormSteps[currentAiFormStep];
     const fieldsToRender = stepData.fields;
 
     return (
-      <CardContent className="space-y-6 min-h-[300px]"> {/* Added min-height */}
+      <CardContent className="space-y-6 min-h-[300px]">
         {fieldsToRender.includes("projectTitle") && (
           <FormField
             control={form.control}
@@ -329,72 +354,124 @@ export default function ProjectMakerPage() {
     );
   };
 
+  const pageDescription = creationMode === 'undecided' 
+    ? "Choose how you'd like to create your Project Management Document."
+    : creationMode === 'ai'
+    ? "Follow the steps to provide project details, and our AI will craft a PMD for you."
+    : "Manually create your PMD (feature coming soon).";
+
 
   return (
     <div className="space-y-12">
       <section className="text-center py-8 bg-card shadow-lg rounded-xl border">
         <ClipboardEdit className="mx-auto h-16 w-16 text-primary mb-4" />
         <h1 className="text-4xl font-bold tracking-tight text-foreground mb-3">
-          AI Project Document Creator
+          Project Document Creator
         </h1>
         <p className="text-muted-foreground max-w-xl mx-auto">
-          Follow the steps to provide your project details, and our AI will help you craft a comprehensive Project Management Document.
+          {pageDescription}
         </p>
       </section>
 
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-          <Card className="shadow-md border overflow-hidden">
-            <CardHeader>
-              <div className="flex justify-between items-center mb-2">
-                <CardTitle className="flex items-center gap-2 text-2xl">
-                  <FileText className="h-6 w-6 text-primary" />
-                  {formSteps[currentStep].title}
-                </CardTitle>
-                <span className="text-sm text-muted-foreground">
-                  Step {currentStep + 1} of {formSteps.length}
-                </span>
-              </div>
-              <CardDescription>
-                {formSteps[currentStep].description} Fields marked with * are required.
-              </CardDescription>
-              <Progress value={progressValue} className="w-full mt-2 h-2" />
-            </CardHeader>
-            
-            {renderStepContent()}
+      {creationMode === 'undecided' && (
+        <Card className="shadow-md border">
+          <CardHeader>
+            <CardTitle className="text-2xl text-center">Creation Method</CardTitle>
+            <CardDescription className="text-center">
+              Select how you want to generate your PMD.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col sm:flex-row justify-center items-center gap-6 py-10">
+            <Button size="lg" onClick={() => handleSetMode('ai')} className="w-full sm:w-auto">
+              <Lightbulb className="mr-2 h-5 w-5" />
+              Generate with AI
+            </Button>
+            <Button size="lg" variant="outline" onClick={() => handleSetMode('manual')} className="w-full sm:w-auto">
+              <Edit3 className="mr-2 h-5 w-5" />
+              Create Manually
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
-            <CardFooter className="flex justify-between border-t pt-6">
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={handlePrevious} 
-                disabled={currentStep === 0 || isLoading}
-              >
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Previous
-              </Button>
+      {creationMode === 'manual' && (
+        <Card className="shadow-md border">
+          <CardHeader>
+            <CardTitle className="text-2xl text-center">Manual PMD Creation</CardTitle>
+          </CardHeader>
+          <CardContent className="text-center py-10">
+            <Edit3 className="mx-auto h-12 w-12 text-primary mb-4" />
+            <p className="text-lg text-muted-foreground mb-6">
+              The manual PMD creation feature is currently under development.
+              <br />
+              Please check back later, or try our AI generation!
+            </p>
+            <Button onClick={() => handleSetMode('undecided')}>
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Choices
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
-              {currentStep < formSteps.length - 1 ? (
+      {creationMode === 'ai' && !pmdContent && (
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmitAiForm)} className="space-y-8">
+            <Card className="shadow-md border overflow-hidden">
+              <CardHeader>
+                <div className="flex justify-between items-center mb-2">
+                  <CardTitle className="flex items-center gap-2 text-2xl">
+                    {aiFormSteps[currentAiFormStep].icon || <FileText className="h-6 w-6 text-primary" />}
+                    {aiFormSteps[currentAiFormStep].title}
+                  </CardTitle>
+                  <Button variant="outline" size="sm" onClick={() => handleSetMode('undecided')} type="button">
+                     <RotateCcw className="mr-2 h-4 w-4" /> Change Method
+                  </Button>
+                </div>
+                <CardDescription>
+                  {aiFormSteps[currentAiFormStep].description} Fields marked with * are required.
+                  <span className="block text-xs text-muted-foreground mt-1">
+                    Step {currentAiFormStep + 1} of {aiFormSteps.length}
+                  </span>
+                </CardDescription>
+                <Progress value={progressValue} className="w-full mt-2 h-2" />
+              </CardHeader>
+              
+              {renderAiFormStepContent()}
+
+              <CardFooter className="flex justify-between border-t pt-6">
                 <Button 
                   type="button" 
-                  onClick={handleNext} 
-                  disabled={isLoading}
+                  variant="outline" 
+                  onClick={handleAiFormPrevious} 
+                  disabled={currentAiFormStep === 0 || isLoading}
                 >
-                  Next
-                  <ArrowRight className="ml-2 h-4 w-4" />
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Previous
                 </Button>
-              ) : (
-                <Button size="lg" type="submit" disabled={isLoading}>
-                  {isLoading ? <Spinner size="sm" className="mr-2" /> : <Sparkles className="mr-2 h-5 w-5" />}
-                  {isLoading ? 'Generating Document...' : 'Generate PMD'}
-                </Button>
-              )}
-            </CardFooter>
-          </Card>
-        </form>
-      </Form>
 
-      {isLoading && !pmdContent && currentStep === formSteps.length -1 && ( // Show main loader only if on last step and submitted
+                {currentAiFormStep < aiFormSteps.length - 1 ? (
+                  <Button 
+                    type="button" 
+                    onClick={handleAiFormNext} 
+                    disabled={isLoading}
+                  >
+                    Next
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                ) : (
+                  <Button size="lg" type="submit" disabled={isLoading}>
+                    {isLoading ? <Spinner size="sm" className="mr-2" /> : <Sparkles className="mr-2 h-5 w-5" />}
+                    {isLoading ? 'Generating Document...' : 'Generate PMD'}
+                  </Button>
+                )}
+              </CardFooter>
+            </Card>
+          </form>
+        </Form>
+      )}
+      
+      {isLoading && creationMode === 'ai' && !pmdContent && currentAiFormStep === aiFormSteps.length - 1 && (
         <div className="text-center py-10">
           <Spinner size="lg" />
           <p className="text-muted-foreground mt-4">AI is drafting your PMD, please wait...</p>
@@ -403,15 +480,21 @@ export default function ProjectMakerPage() {
 
       {pmdContent && (
         <Card className="shadow-md border mt-12">
-          <CardHeader className="flex flex-row justify-between items-center">
+          <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
               <CardTitle className="text-2xl">Generated Project Management Document</CardTitle>
-              <CardDescription>Review the generated PMD below. You can copy the text or export it as a Markdown file.</CardDescription>
+              <CardDescription>Review the generated PMD. You can copy or export it as Markdown.</CardDescription>
             </div>
-            <Button onClick={handleExport} variant="outline" size="lg" disabled={!pmdContent}>
-              <Download className="mr-2 h-5 w-5" />
-              Export as .md
-            </Button>
+            <div className="flex gap-2 w-full sm:w-auto">
+                <Button onClick={() => handleSetMode('undecided')} variant="outline" className="w-full sm:w-auto">
+                    <RotateCcw className="mr-2 h-5 w-5" />
+                    Start New
+                </Button>
+                <Button onClick={handleExport} variant="default" size="lg" disabled={!pmdContent} className="w-full sm:w-auto">
+                    <Download className="mr-2 h-5 w-5" />
+                    Export as .md
+                </Button>
+            </div>
           </CardHeader>
           <CardContent>
             <Textarea
@@ -426,5 +509,4 @@ export default function ProjectMakerPage() {
     </div>
   );
 }
-
     
