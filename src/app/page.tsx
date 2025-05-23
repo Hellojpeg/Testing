@@ -3,6 +3,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { fetchHangoutSuggestionsAction } from '@/lib/actions';
 import type { HangoutSuggestion } from '@/lib/types';
@@ -19,6 +20,7 @@ export default function HangoutHelperPage() {
   const [aiSuggestions, setAiSuggestions] = useState<HangoutSuggestion[]>([]);
   const [savedSuggestions, setSavedSuggestions] = useState<HangoutSuggestion[]>([]);
   const [pastHangouts, setPastHangouts] = useState<string[]>([]); // Store text of past hangouts
+  const [userQuery, setUserQuery] = useState('');
 
   const { toast } = useToast();
 
@@ -59,12 +61,9 @@ export default function HangoutHelperPage() {
     setAiSuggestions([]); // Clear previous AI suggestions
     try {
       const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      // For more realistic weather, one might use a weather API.
-      // For trending activities, one might scrape social media or use an events API.
-      const weather = "Pleasant, " + (Math.floor(Math.random() * 15) + 15) + "°C"; // Random pleasant weather
+      const weather = "Pleasant, " + (Math.floor(Math.random() * 15) + 15) + "°C"; 
       const trendingSocialActivities = ["Local market exploration", "Park picnic", "New cafe visit", "Board game night", "Street art tour"].sort(() => 0.5 - Math.random()).slice(0,2).join(', ');
       
-      // Take recent past hangouts for better suggestions
       const pastHangoutHistory = pastHangouts.slice(-MAX_PAST_HANGOUTS_FOR_AI).join('; ') || "None recently";
 
       const result = await fetchHangoutSuggestionsAction({
@@ -72,13 +71,14 @@ export default function HangoutHelperPage() {
         weather,
         trendingSocialActivities,
         pastHangoutHistory,
+        userQuery: userQuery.trim() !== '' ? userQuery.trim() : undefined,
       });
 
       if (result.suggestions && result.suggestions.length > 0) {
         const newSuggestions = result.suggestions.map((text, index) => ({
           id: `ai-${Date.now()}-${index}`,
           text,
-          isSaved: savedSuggestions.some(s => s.text === text), // Check if already saved by text match
+          isSaved: savedSuggestions.some(s => s.text === text),
           hasHappened: false,
           createdAt: new Date().toISOString(),
         }));
@@ -94,7 +94,7 @@ export default function HangoutHelperPage() {
       setAiSuggestions([]);
     }
     setIsLoading(false);
-  }, [pastHangouts, savedSuggestions, toast]);
+  }, [pastHangouts, savedSuggestions, toast, userQuery]);
 
   const handleToggleSave = useCallback((suggestionId: string) => {
     setAiSuggestions(prev => prev.map(s => {
@@ -102,7 +102,7 @@ export default function HangoutHelperPage() {
         const nowSaved = !s.isSaved;
         if (nowSaved) {
           setSavedSuggestions(currentSaved => {
-            if (currentSaved.find(saved => saved.id === s.id)) return currentSaved; // Already there by ID
+            if (currentSaved.find(saved => saved.id === s.id)) return currentSaved; 
             return [{ ...s, isSaved: true }, ...currentSaved];
           });
         } else {
@@ -113,13 +113,12 @@ export default function HangoutHelperPage() {
       return s;
     }));
     
-    // If operating on a card from the saved list directly
     setSavedSuggestions(prev => {
         const targetSuggestion = prev.find(s => s.id === suggestionId);
-        if (targetSuggestion) { // Found in saved list, means we are unsaving it
+        if (targetSuggestion) { 
             return prev.filter(s => s.id !== suggestionId);
         }
-        return prev; // No change if not found (already handled by aiSuggestions map)
+        return prev; 
     });
 
   }, []);
@@ -136,15 +135,12 @@ export default function HangoutHelperPage() {
     };
     
     setAiSuggestions(prev => prev.map(updateAndFindText));
-    setSavedSuggestions(prev => prev.filter(s => s.id !== suggestionId)); // Remove from saved as it's now past
+    setSavedSuggestions(prev => prev.filter(s => s.id !== suggestionId)); 
 
     if (suggestionText && !pastHangouts.includes(suggestionText)) {
-      setPastHangouts(prev => [suggestionText, ...prev]); // Add to beginning of past hangouts
+      setPastHangouts(prev => [suggestionText, ...prev]); 
       toast({ title: "Awesome!", description: `Marked "${suggestionText.substring(0,30)}..." as happened.`});
     }
-    
-    // Optionally remove from AI suggestions list after a delay, or keep to show status
-    // For now, we keep it and the card UI reflects 'hasHappened'
   }, [pastHangouts, toast]);
 
   const handleDeleteSuggestion = useCallback((suggestionId: string) => {
@@ -162,12 +158,11 @@ export default function HangoutHelperPage() {
     }
   }, [toast]);
 
-  // Automatically fetch suggestions on initial load if no AI suggestions are present
   useEffect(() => {
     if (aiSuggestions.length === 0 && savedSuggestions.length === 0 && pastHangouts.length === 0) {
       handleGetSuggestions();
     }
-  }, []); // Empty dependency array ensures this runs only once on mount
+  }, []);
 
 
   return (
@@ -176,8 +171,16 @@ export default function HangoutHelperPage() {
         <Wand2 className="mx-auto h-16 w-16 text-primary mb-4" />
         <h2 className="text-4xl font-bold tracking-tight text-foreground mb-3">Ready for an Adventure?</h2>
         <p className="text-muted-foreground mb-6 max-w-xl mx-auto">
-          Let our AI help you discover exciting hangout ideas with your friends. <br/>Just hit the button below!
+          Let our AI help you discover exciting hangout ideas. <br/> Optionally, type a theme below, then hit the button!
         </p>
+        <Input
+          type="text"
+          placeholder="e.g., 'something artsy' or 'a relaxing day out'"
+          value={userQuery}
+          onChange={(e) => setUserQuery(e.target.value)}
+          className="max-w-lg mx-auto mb-6 border-input focus:border-primary shadow-sm"
+          aria-label="Custom adventure theme"
+        />
         <Button size="lg" onClick={handleGetSuggestions} disabled={isLoading} className="min-w-[200px]">
           {isLoading ? <Spinner size="sm" className="mr-2" /> : <Zap className="mr-2 h-5 w-5" />}
           {isLoading ? 'Conjuring Ideas...' : 'Get New Suggestions'}
@@ -200,8 +203,8 @@ export default function HangoutHelperPage() {
           <Separator />
           <SuggestionList
             title="Saved for Later"
-            suggestions={savedSuggestions.filter(s => !s.hasHappened)} // Filter out any that might have been marked happened
-            onToggleSave={handleToggleSave} // This will effectively unsave
+            suggestions={savedSuggestions.filter(s => !s.hasHappened)}
+            onToggleSave={handleToggleSave} 
             onMarkAsHappened={handleMarkAsHappened}
             onDelete={handleDeleteSuggestion}
             emptyStateMessage="You haven't saved any suggestions yet. Find an idea you like and save it!"
