@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { SliderHorizontal, Music, Volume2, Mic, Zap, Settings2, ServerCrash, Waves } from 'lucide-react';
+import { SlidersHorizontal, Music, Volume2, Mic, Zap, Settings2, ServerCrash, Waves } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Spinner } from '@/components/ui/spinner';
 
@@ -409,7 +409,7 @@ export default function ChromaticTunerPage() {
           <Card className="shadow-md border">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-2xl">
-                <SliderHorizontal className="h-6 w-6 text-primary" />
+                <SlidersHorizontal className="h-6 w-6 text-primary" />
                 Tune Your Instrument
               </CardTitle>
               <CardDescription>
