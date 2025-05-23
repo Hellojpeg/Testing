@@ -268,7 +268,7 @@ export default function ProjectMakerPage() {
                 onChange={(value) => setPmdContent(value || '')}
                 preview="edit" 
                 height={600}
-                rehypePlugins={[[rehypeSanitize]]}
+                rehypePlugins={[rehypeSanitize]}
                 visibleDragbar={false}
               />
             </div>
@@ -278,4 +278,3 @@ export default function ProjectMakerPage() {
     </div>
   );
 }
-
