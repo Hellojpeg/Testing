@@ -1,6 +1,7 @@
 
 import { z } from 'zod';
 
+// Schema for the structured PMD input
 export const GeneratePmdInputSchema = z.object({
   industry: z.string().min(1, { message: "Industry is required." }).describe("The specific industry for the project (e.g., Software Development, Construction, Healthcare, Marketing)."),
   projectTitle: z.string().min(1, { message: "Project title is required." }).describe("The title of the project."),
@@ -19,3 +20,15 @@ export const GeneratePmdOutputSchema = z.object({
   pmdContent: z.string().describe("The full Project Management Document content, formatted in Markdown for readability and export."),
 });
 export type GeneratePmdOutput = z.infer<typeof GeneratePmdOutputSchema>;
+
+
+// Schemas for PMD generation from free-form description
+export const GeneratePmdFromDescriptionInputSchema = z.object({
+  description: z.string().min(20, { message: "Please provide a reasonably detailed description (at least 20 characters)." }).describe("A free-form description of the project, product, vision, problem, or solution."),
+});
+export type GeneratePmdFromDescriptionInput = z.infer<typeof GeneratePmdFromDescriptionInputSchema>;
+
+export const GeneratePmdFromDescriptionOutputSchema = z.object({
+  pmdContent: z.string().describe("The full Project Management Document content, formatted in Markdown."),
+});
+export type GeneratePmdFromDescriptionOutput = z.infer<typeof GeneratePmdFromDescriptionOutputSchema>;

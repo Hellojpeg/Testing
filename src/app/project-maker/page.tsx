@@ -4,102 +4,48 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import type { GeneratePmdInput } from '@/lib/schemas/pmd';
-import { GeneratePmdInputSchema } from '@/lib/schemas/pmd';
-import { fetchPmdAction } from '@/lib/actions';
+// Removed direct Zod import, schemas will come from @/lib/schemas/pmd
+
+// Import the action and types from the new schema location
+import { fetchPmdFromDescriptionAction } from '@/lib/actions';
+import { 
+  GeneratePmdFromDescriptionInputSchema, // Schema object for validation
+  type GeneratePmdFromDescriptionInput // Type for form values
+} from '@/lib/schemas/pmd';
+
+
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label'; // Keep if used, though FormLabel is preferred in Form
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
 import { Spinner } from '@/components/ui/spinner';
-import { ClipboardEdit, FileText, Download, Sparkles, ArrowLeft, ArrowRight, Lightbulb, Edit3, RotateCcw, CheckSquare } from 'lucide-react';
-import { Progress } from '@/components/ui/progress';
-
-const aiFormSteps = [
-  {
-    id: "basics",
-    title: "Project Basics",
-    description: "Let's start with the foundational details of your project.",
-    fields: ["projectTitle", "industry"] as const,
-    icon: <ClipboardEdit className="h-5 w-5" />,
-  },
-  {
-    id: "objective",
-    title: "Core Objective",
-    description: "What is the primary goal you aim to achieve?",
-    fields: ["projectGoal"] as const,
-    icon: <CheckSquare className="h-5 w-5" />,
-  },
-  {
-    id: "scope",
-    title: "Scope Definition",
-    description: "Detail what the project will and will not include.",
-    fields: ["projectScope"] as const,
-    icon: <CheckSquare className="h-5 w-5" />,
-  },
-  {
-    id: "stakeholders",
-    title: "Stakeholders",
-    description: "Identify the key people involved and their roles.",
-    fields: ["keyStakeholders"] as const,
-    icon: <CheckSquare className="h-5 w-5" />,
-  },
-  {
-    id: "timings_finances",
-    title: "Timings & Finances (Optional)",
-    description: "Outline any estimated timelines or budget considerations.",
-    fields: ["timeline", "budget"] as const,
-    icon: <CheckSquare className="h-5 w-5" />,
-  },
-  {
-    id: "risks_success",
-    title: "Risks & Success (Optional)",
-    description: "Consider potential challenges and how you'll measure success.",
-    fields: ["knownRisks", "successMetrics"] as const,
-    icon: <CheckSquare className="h-5 w-5" />,
-  },
-  {
-    id: "final_touches",
-    title: "Final Touches (Optional)",
-    description: "Add any other relevant information or specific sections.",
-    fields: ["additionalInfo"] as const,
-    icon: <CheckSquare className="h-5 w-5" />,
-  },
-];
+import { ClipboardEdit, FileText, Download, Sparkles, ArrowLeft, Edit3, RotateCcw, Lightbulb } from 'lucide-react';
 
 type CreationMode = 'undecided' | 'ai' | 'manual';
 
+// Use the imported schema for form values type
+type AiFreeFormPmdValues = GeneratePmdFromDescriptionInput;
+
 export default function ProjectMakerPage() {
   const [creationMode, setCreationMode] = useState<CreationMode>('undecided');
-  const [currentAiFormStep, setCurrentAiFormStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [pmdContent, setPmdContent] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const form = useForm<GeneratePmdInput>({
-    resolver: zodResolver(GeneratePmdInputSchema),
+  const form = useForm<AiFreeFormPmdValues>({
+    resolver: zodResolver(GeneratePmdFromDescriptionInputSchema), // Use imported schema object
     defaultValues: {
-      industry: '',
-      projectTitle: '',
-      projectGoal: '',
-      projectScope: '',
-      keyStakeholders: '',
-      timeline: '',
-      budget: '',
-      knownRisks: '',
-      successMetrics: '',
-      additionalInfo: '',
+      description: '',
     },
   });
 
-  const onSubmitAiForm = async (data: GeneratePmdInput) => {
+  const onSubmitAiForm = async (data: AiFreeFormPmdValues) => {
     setIsLoading(true);
     setPmdContent(null);
     try {
-      const result = await fetchPmdAction(data);
+      // Call the new action
+      const result = await fetchPmdFromDescriptionAction(data);
       if (result.pmdContent) {
         setPmdContent(result.pmdContent);
         toast({
@@ -109,12 +55,12 @@ export default function ProjectMakerPage() {
       } else {
         toast({
           title: 'Generation Failed',
-          description: result.pmdContent || 'Could not generate the PMD. Please check your inputs or try again.',
+          description: result.pmdContent || 'Could not generate the PMD from the description. Please try again.',
           variant: 'destructive',
         });
       }
     } catch (error) {
-      console.error('Failed to generate PMD:', error);
+      console.error('Failed to generate PMD from description:', error);
       toast({
         title: 'Error',
         description: 'An unexpected error occurred while generating the PMD.',
@@ -126,16 +72,19 @@ export default function ProjectMakerPage() {
   };
 
   const handleExport = () => {
-    if (!pmdContent || !form.getValues('projectTitle')) {
+    if (!pmdContent) {
       toast({
         title: 'Cannot Export',
-        description: 'No PMD content to export or project title is missing (if AI generated).',
+        description: 'No PMD content to export.',
         variant: 'destructive',
       });
       return;
     }
-    const projectTitle = form.getValues('projectTitle') || 'Manual_Project';
+    // Try to get a project title from the PMD content for the filename, or default
+    const titleMatch = pmdContent.match(/^#\s*(.*)/m);
+    const projectTitle = titleMatch && titleMatch[1] ? titleMatch[1].trim() : 'Generated_Project_Document';
     const filename = `${projectTitle.replace(/\s+/g, '_')}_PMD.md`;
+
     const blob = new Blob([pmdContent], { type: 'text/markdown;charset=utf-8;' });
     const link = document.createElement('a');
     if (link.download !== undefined) {
@@ -162,204 +111,16 @@ export default function ProjectMakerPage() {
 
   const handleSetMode = (mode: CreationMode) => {
     setCreationMode(mode);
-    setCurrentAiFormStep(0);
     setPmdContent(null);
     setIsLoading(false);
-    if (mode === 'ai') {
-      form.reset(); // Reset form for AI mode
-    }
+    form.reset({ description: '' }); // Reset form for AI mode
   };
-
-  const handleAiFormNext = async () => {
-    const currentFields = aiFormSteps[currentAiFormStep].fields;
-    const isValid = await form.trigger(currentFields);
-    if (isValid) {
-      if (currentAiFormStep < aiFormSteps.length - 1) {
-        setCurrentAiFormStep(currentAiFormStep + 1);
-      }
-    } else {
-      toast({
-        title: "Hold Up!",
-        description: "Please fill in all required fields for this step before proceeding.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleAiFormPrevious = () => {
-    if (currentAiFormStep > 0) {
-      setCurrentAiFormStep(currentAiFormStep - 1);
-    }
-  };
-
-  const progressValue = ((currentAiFormStep + 1) / aiFormSteps.length) * 100;
-
-  const renderAiFormStepContent = () => {
-    const stepData = aiFormSteps[currentAiFormStep];
-    const fieldsToRender = stepData.fields;
-
-    return (
-      <CardContent className="space-y-6 min-h-[300px]">
-        {fieldsToRender.includes("projectTitle") && (
-          <FormField
-            control={form.control}
-            name="projectTitle"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Project Title *</FormLabel>
-                <FormControl>
-                  <Input placeholder="e.g., New Mobile App Development" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        )}
-        {fieldsToRender.includes("industry") && (
-           <FormField
-            control={form.control}
-            name="industry"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Industry *</FormLabel>
-                <FormControl>
-                  <Input placeholder="e.g., Technology, Healthcare, Finance" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        )}
-         {fieldsToRender.includes("projectGoal") && (
-            <FormField
-              control={form.control}
-              name="projectGoal"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Primary Project Goal *</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="Describe the main objective of this project." {...field} rows={5} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-        )}
-        {fieldsToRender.includes("projectScope") && (
-            <FormField
-                control={form.control}
-                name="projectScope"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Project Scope (Inclusions & Exclusions) *</FormLabel>
-                    <FormControl>
-                      <Textarea placeholder="Detail what the project will and will not include." {...field} rows={5}/>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-        )}
-        {fieldsToRender.includes("keyStakeholders") && (
-             <FormField
-                control={form.control}
-                name="keyStakeholders"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Key Stakeholders & Roles *</FormLabel>
-                    <FormControl>
-                      <Textarea placeholder="e.g., CEO - Project Sponsor, Marketing Lead - User Acquisition" {...field} rows={4}/>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-        )}
-        {fieldsToRender.includes("timeline") && (
-             <FormField
-                  control={form.control}
-                  name="timeline"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Estimated Timeline / Milestones</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g., Q1: Design, Q2: Development" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-        )}
-        {fieldsToRender.includes("budget") && (
-            <FormField
-                  control={form.control}
-                  name="budget"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Estimated Budget / Resources</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g., $100,000 or 5 Developers" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-        )}
-        {fieldsToRender.includes("knownRisks") && (
-             <FormField
-                control={form.control}
-                name="knownRisks"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Known Risks / Challenges</FormLabel>
-                    <FormControl>
-                      <Textarea placeholder="List potential risks like 'Market competition' or 'Technical debt'." {...field} rows={3}/>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-        )}
-        {fieldsToRender.includes("successMetrics") && (
-            <FormField
-                control={form.control}
-                name="successMetrics"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Success Metrics / KPIs</FormLabel>
-                    <FormControl>
-                      <Textarea placeholder="How will project success be measured? e.g., 'Achieve 10k active users in 6 months'." {...field} rows={3}/>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-        )}
-        {fieldsToRender.includes("additionalInfo") && (
-            <FormField
-                control={form.control}
-                name="additionalInfo"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Additional Information or Sections</FormLabel>
-                    <FormControl>
-                      <Textarea placeholder="Any other details or specific sections you want in the PMD." {...field} rows={3}/>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-        )}
-      </CardContent>
-    );
-  };
-
+  
   const pageDescription = creationMode === 'undecided' 
     ? "Choose how you'd like to create your Project Management Document."
     : creationMode === 'ai'
-    ? "Follow the steps to provide project details, and our AI will craft a PMD for you."
+    ? "Describe your project, vision, or problem, and our AI will craft a PMD for you."
     : "Manually create your PMD (feature coming soon).";
-
 
   return (
     <div className="space-y-12">
@@ -421,57 +182,51 @@ export default function ProjectMakerPage() {
               <CardHeader>
                 <div className="flex justify-between items-center mb-2">
                   <CardTitle className="flex items-center gap-2 text-2xl">
-                    {aiFormSteps[currentAiFormStep].icon || <FileText className="h-6 w-6 text-primary" />}
-                    {aiFormSteps[currentAiFormStep].title}
+                    <FileText className="h-6 w-6 text-primary" />
+                    Describe Your Project
                   </CardTitle>
                   <Button variant="outline" size="sm" onClick={() => handleSetMode('undecided')} type="button">
                      <RotateCcw className="mr-2 h-4 w-4" /> Change Method
                   </Button>
                 </div>
                 <CardDescription>
-                  {aiFormSteps[currentAiFormStep].description} Fields marked with * are required.
-                  <span className="block text-xs text-muted-foreground mt-1">
-                    Step {currentAiFormStep + 1} of {aiFormSteps.length}
-                  </span>
+                  Tell us about your product, vision, problem, or solution. The AI will use this to generate a draft PMD.
                 </CardDescription>
-                <Progress value={progressValue} className="w-full mt-2 h-2" />
               </CardHeader>
               
-              {renderAiFormStepContent()}
+              <CardContent className="space-y-6 min-h-[200px]">
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Project Description</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          placeholder="e.g., We are building a mobile app to help users find local community events. It should allow event discovery, RSVPs, and user profiles..." 
+                          {...field} 
+                          rows={10}
+                          className="text-base" 
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
 
-              <CardFooter className="flex justify-between border-t pt-6">
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={handleAiFormPrevious} 
-                  disabled={currentAiFormStep === 0 || isLoading}
-                >
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Previous
+              <CardFooter className="flex justify-end border-t pt-6">
+                <Button size="lg" type="submit" disabled={isLoading}>
+                  {isLoading ? <Spinner size="sm" className="mr-2" /> : <Sparkles className="mr-2 h-5 w-5" />}
+                  {isLoading ? 'Generating Document...' : 'Generate PMD with AI'}
                 </Button>
-
-                {currentAiFormStep < aiFormSteps.length - 1 ? (
-                  <Button 
-                    type="button" 
-                    onClick={handleAiFormNext} 
-                    disabled={isLoading}
-                  >
-                    Next
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                ) : (
-                  <Button size="lg" type="submit" disabled={isLoading}>
-                    {isLoading ? <Spinner size="sm" className="mr-2" /> : <Sparkles className="mr-2 h-5 w-5" />}
-                    {isLoading ? 'Generating Document...' : 'Generate PMD'}
-                  </Button>
-                )}
               </CardFooter>
             </Card>
           </form>
         </Form>
       )}
       
-      {isLoading && creationMode === 'ai' && !pmdContent && currentAiFormStep === aiFormSteps.length - 1 && (
+      {isLoading && creationMode === 'ai' && !pmdContent && ( // Show global spinner if loading and no content yet for AI mode
         <div className="text-center py-10">
           <Spinner size="lg" />
           <p className="text-muted-foreground mt-4">AI is drafting your PMD, please wait...</p>
@@ -509,4 +264,3 @@ export default function ProjectMakerPage() {
     </div>
   );
 }
-    

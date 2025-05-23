@@ -4,7 +4,8 @@
 import { generateHangoutSuggestions, type GenerateHangoutSuggestionsInput, type GenerateHangoutSuggestionsOutput } from '@/ai/flows/generate-hangout-suggestions';
 import { generateScavengerHunt, type GenerateScavengerHuntInput, type GenerateScavengerHuntOutput } from '@/ai/flows/generate-scavenger-hunt-flow';
 import { generateMealSuggestions, type GenerateMealInput, type GenerateMealOutput } from '@/ai/flows/generate-meal-flow';
-import { generatePmd, type GeneratePmdInput, type GeneratePmdOutput } from '@/ai/flows/generate-pmd-flow';
+import { generatePmd, type GeneratePmdInput as GenerateStructuredPmdInput, type GeneratePmdOutput as GenerateStructuredPmdOutput } from '@/ai/flows/generate-pmd-flow';
+import { generatePmdFromDescription, type GeneratePmdFromDescriptionInput, type GeneratePmdFromDescriptionOutput } from '@/ai/flows/generate-pmd-from-description-flow';
 
 export async function fetchHangoutSuggestionsAction(
   input: GenerateHangoutSuggestionsInput
@@ -43,14 +44,28 @@ export async function fetchMealSuggestionsAction(
   }
 }
 
+// This action uses the original structured PMD flow. It's kept for potential future use
+// but the UI will primarily use fetchPmdFromDescriptionAction for the "Generate with AI" path.
 export async function fetchPmdAction(
-  input: GeneratePmdInput
-): Promise<GeneratePmdOutput> {
+  input: GenerateStructuredPmdInput
+): Promise<GenerateStructuredPmdOutput> {
   try {
     const result = await generatePmd(input);
     return result;
   } catch (error) {
-    console.error('Error generating PMD:', error);
-    return { pmdContent: "Error: Could not connect to the AI service to generate the PMD. Please try again later." };
+    console.error('Error generating PMD (structured):', error);
+    return { pmdContent: "Error: Could not connect to the AI service to generate the PMD using structured input. Please try again later." };
+  }
+}
+
+export async function fetchPmdFromDescriptionAction(
+  input: GeneratePmdFromDescriptionInput
+): Promise<GeneratePmdFromDescriptionOutput> {
+  try {
+    const result = await generatePmdFromDescription(input);
+    return result;
+  } catch (error) {
+    console.error('Error generating PMD from description:', error);
+    return { pmdContent: "Error: Could not connect to the AI service to generate the PMD from your description. Please try again later." };
   }
 }
