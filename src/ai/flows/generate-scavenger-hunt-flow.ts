@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview Generates a scavenger hunt based on a suggestion.

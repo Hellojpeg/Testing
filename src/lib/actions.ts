@@ -4,6 +4,7 @@
 import { generateHangoutSuggestions, type GenerateHangoutSuggestionsInput, type GenerateHangoutSuggestionsOutput } from '@/ai/flows/generate-hangout-suggestions';
 import { generateScavengerHunt, type GenerateScavengerHuntInput, type GenerateScavengerHuntOutput } from '@/ai/flows/generate-scavenger-hunt-flow';
 import { generateMealSuggestions, type GenerateMealInput, type GenerateMealOutput } from '@/ai/flows/generate-meal-flow';
+import { generatePmd, type GeneratePmdInput, type GeneratePmdOutput } from '@/ai/flows/generate-pmd-flow';
 
 export async function fetchHangoutSuggestionsAction(
   input: GenerateHangoutSuggestionsInput
@@ -39,5 +40,17 @@ export async function fetchMealSuggestionsAction(
     console.error('Error fetching meal suggestions:', error);
     // Consider more specific error handling or logging
     return { meals: [] };
+  }
+}
+
+export async function fetchPmdAction(
+  input: GeneratePmdInput
+): Promise<GeneratePmdOutput> {
+  try {
+    const result = await generatePmd(input);
+    return result;
+  } catch (error) {
+    console.error('Error generating PMD:', error);
+    return { pmdContent: "Error: Could not connect to the AI service to generate the PMD. Please try again later." };
   }
 }
