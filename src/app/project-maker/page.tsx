@@ -22,6 +22,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { useToast } from '@/hooks/use-toast';
 import { Spinner } from '@/components/ui/spinner';
 import { ClipboardEdit, FileText, Download, Sparkles, ArrowLeft, Edit3, RotateCcw, Lightbulb, Printer } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 type CreationMode = 'undecided' | 'ai' | 'manual';
 
@@ -246,20 +247,43 @@ export default function ProjectMakerPage() {
               <CardTitle className="text-2xl">Generated Project Management Document</CardTitle>
               <CardDescription>Review and edit the generated PMD. You can copy, export, or print it.</CardDescription>
             </div>
-            <div className="flex flex-wrap gap-2 w-full sm:w-auto">
-                <Button onClick={() => handleSetMode('undecided')} variant="outline" className="w-full grow sm:grow-0">
-                    <RotateCcw className="mr-2 h-5 w-5" />
-                    Start New
-                </Button>
-                <Button onClick={handleExport} variant="default" size="lg" disabled={!pmdContent} className="w-full grow sm:grow-0">
-                    <Download className="mr-2 h-5 w-5" />
-                    Export as .md
-                </Button>
-                 <Button onClick={handlePrint} variant="outline" size="lg" disabled={!pmdContent} className="w-full grow sm:grow-0">
-                    <Printer className="mr-2 h-5 w-5" />
-                    Print
-                </Button>
-            </div>
+            <TooltipProvider>
+              <div className="flex gap-2">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button onClick={() => handleSetMode('undecided')} variant="outline" size="icon">
+                        <RotateCcw className="h-5 w-5" />
+                        <span className="sr-only">Start New Document</span>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Start New Document</p>
+                  </TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button onClick={handleExport} variant="default" size="icon" disabled={!pmdContent}>
+                        <Download className="h-5 w-5" />
+                        <span className="sr-only">Export as Markdown</span>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Export as .md</p>
+                  </TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button onClick={handlePrint} variant="outline" size="icon" disabled={!pmdContent}>
+                        <Printer className="h-5 w-5" />
+                        <span className="sr-only">Print Document</span>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Print Document</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+            </TooltipProvider>
           </CardHeader>
           <CardContent>
             <div data-color-mode="light" className="prose max-w-none">
@@ -278,3 +302,4 @@ export default function ProjectMakerPage() {
     </div>
   );
 }
+
