@@ -1,15 +1,147 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { Toggle } from '@/components/ui/toggle';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Edit, Zap } from 'lucide-react';
+import { Edit, Zap, Bold, Italic, Strikethrough, Heading1, Heading2, Heading3, List, ListOrdered, Quote, Code, Minus, Undo, Redo } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Spinner } from '@/components/ui/spinner';
 
-import { useEditor, EditorContent } from '@tiptap/react';
+import { useEditor, EditorContent, type Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
+import Heading from '@tiptap/extension-heading';
+
+const TiptapToolbar = ({ editor }: { editor: Editor | null }) => {
+  if (!editor) {
+    return null;
+  }
+
+  return (
+    <div className="flex flex-wrap items-center gap-1 p-2 border border-input rounded-t-md bg-card shadow-sm">
+      <Toggle
+        size="sm"
+        pressed={editor.isActive('bold')}
+        onPressedChange={() => editor.chain().focus().toggleBold().run()}
+        aria-label="Bold"
+      >
+        <Bold className="h-4 w-4" />
+      </Toggle>
+      <Toggle
+        size="sm"
+        pressed={editor.isActive('italic')}
+        onPressedChange={() => editor.chain().focus().toggleItalic().run()}
+        aria-label="Italic"
+      >
+        <Italic className="h-4 w-4" />
+      </Toggle>
+      <Toggle
+        size="sm"
+        pressed={editor.isActive('strike')}
+        onPressedChange={() => editor.chain().focus().toggleStrike().run()}
+        aria-label="Strikethrough"
+      >
+        <Strikethrough className="h-4 w-4" />
+      </Toggle>
+
+      <div className="h-6 border-l border-border mx-1"></div>
+
+      <Toggle
+        size="sm"
+        pressed={editor.isActive('heading', { level: 1 })}
+        onPressedChange={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+        aria-label="Heading 1"
+      >
+        <Heading1 className="h-4 w-4" />
+      </Toggle>
+      <Toggle
+        size="sm"
+        pressed={editor.isActive('heading', { level: 2 })}
+        onPressedChange={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+        aria-label="Heading 2"
+      >
+        <Heading2 className="h-4 w-4" />
+      </Toggle>
+      <Toggle
+        size="sm"
+        pressed={editor.isActive('heading', { level: 3 })}
+        onPressedChange={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+        aria-label="Heading 3"
+      >
+        <Heading3 className="h-4 w-4" />
+      </Toggle>
+      
+      <div className="h-6 border-l border-border mx-1"></div>
+
+      <Toggle
+        size="sm"
+        pressed={editor.isActive('bulletList')}
+        onPressedChange={() => editor.chain().focus().toggleBulletList().run()}
+        aria-label="Bullet List"
+      >
+        <List className="h-4 w-4" />
+      </Toggle>
+      <Toggle
+        size="sm"
+        pressed={editor.isActive('orderedList')}
+        onPressedChange={() => editor.chain().focus().toggleOrderedList().run()}
+        aria-label="Ordered List"
+      >
+        <ListOrdered className="h-4 w-4" />
+      </Toggle>
+      <Toggle
+        size="sm"
+        pressed={editor.isActive('blockquote')}
+        onPressedChange={() => editor.chain().focus().toggleBlockquote().run()}
+        aria-label="Blockquote"
+      >
+        <Quote className="h-4 w-4" />
+      </Toggle>
+      <Toggle
+        size="sm"
+        pressed={editor.isActive('codeBlock')}
+        onPressedChange={() => editor.chain().focus().toggleCodeBlock().run()}
+        aria-label="Code Block"
+      >
+        <Code className="h-4 w-4" />
+      </Toggle>
+
+      <div className="h-6 border-l border-border mx-1"></div>
+      
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => editor.chain().focus().setHorizontalRule().run()}
+        aria-label="Horizontal Rule"
+      >
+        <Minus className="h-4 w-4" />
+      </Button>
+
+      <div className="h-6 border-l border-border mx-1"></div>
+
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => editor.chain().focus().undo().run()}
+        disabled={!editor.can().undo()}
+        aria-label="Undo"
+      >
+        <Undo className="h-4 w-4" />
+      </Button>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => editor.chain().focus().redo().run()}
+        disabled={!editor.can().redo()}
+        aria-label="Redo"
+      >
+        <Redo className="h-4 w-4" />
+      </Button>
+    </div>
+  );
+};
+
 
 export default function DealOutPage() {
   const [isLoadingAiAction, setIsLoadingAiAction] = useState(false);
@@ -18,9 +150,10 @@ export default function DealOutPage() {
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
-        heading: {
-          levels: [1, 2, 3],
-        },
+        heading: false, // Disable StarterKit's heading to use the custom one below
+      }),
+      Heading.configure({ // Configure Heading extension separately to ensure levels are available
+        levels: [1, 2, 3],
       }),
     ],
     content: `
@@ -40,10 +173,17 @@ export default function DealOutPage() {
     `,
     editorProps: {
       attributes: {
-        class: 'prose dark:prose-invert prose-sm sm:prose-base lg:prose-lg xl:prose-2xl focus:outline-none p-4 border border-input rounded-md min-h-[400px] bg-card text-card-foreground shadow-sm w-full overflow-auto',
+        class: 'prose dark:prose-invert prose-sm sm:prose-base lg:prose-lg xl:prose-2xl focus:outline-none p-4 border border-input rounded-b-md min-h-[400px] bg-card text-card-foreground shadow-sm w-full overflow-auto',
       },
     },
   });
+
+  // Cleanup editor instance
+  useEffect(() => {
+    return () => {
+      editor?.destroy();
+    };
+  }, [editor]);
 
   const handleAiAction = async () => {
     if (!editor) {
@@ -55,7 +195,7 @@ export default function DealOutPage() {
       return;
     }
 
-    const content = editor.getHTML(); // or editor.getJSON() for structured data
+    const content = editor.getHTML(); 
 
     if (editor.isEmpty) {
       toast({
@@ -73,8 +213,6 @@ export default function DealOutPage() {
     // editor.commands.setContent(result.refinedHtmlContent);
     await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate AI processing
     
-    // Example: Appending a note to the content. 
-    // For real refinement, you'd likely replace or selectively update.
     editor.commands.insertContentAt(editor.state.doc.content.size, '<p>[AI Refinement Applied - Placeholder]</p>');
 
     toast({
@@ -104,9 +242,7 @@ export default function DealOutPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Placeholder for Tiptap Toolbar if you add one */}
-          {/* <div className="flex space-x-2 border-b pb-2 mb-2">...toolbar buttons...</div> */}
-          
+          <TiptapToolbar editor={editor} />
           <div className="w-full">
             <EditorContent editor={editor} />
           </div>
@@ -117,8 +253,6 @@ export default function DealOutPage() {
           </Button>
         </CardContent>
       </Card>
-
-      {/* Future sections for AI tools, right-click menus, block notes etc. can be added here */}
     </div>
   );
 }
