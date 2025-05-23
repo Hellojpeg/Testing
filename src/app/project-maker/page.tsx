@@ -109,10 +109,20 @@ export default function ProjectMakerPage() {
   };
 
   const handlePrint = () => {
+    if (!pmdContent) {
+        toast({
+            title: 'Cannot Print',
+            description: 'No PMD content to print.',
+            variant: 'destructive',
+        });
+        return;
+    }
+    // A more sophisticated print could involve creating an iframe
+    // and injecting only the content, but window.print() is the simplest.
     window.print();
     toast({
       title: "Printing Initiated",
-      description: "Your browser's print dialog should appear. For best results, you might want to adjust print settings (e.g., scale, layout).",
+      description: "Your browser's print dialog should appear. For best results, you might want to adjust print settings (e.g., scale, layout, print selection).",
     });
   };
 
@@ -292,7 +302,9 @@ export default function ProjectMakerPage() {
                 onChange={(value) => setPmdContent(value || '')}
                 preview="edit" 
                 height={600}
-                rehypePlugins={[rehypeSanitize]}
+                previewOptions={{
+                  rehypePlugins: [rehypeSanitize],
+                }}
                 visibleDragbar={false}
               />
             </div>
