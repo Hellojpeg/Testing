@@ -42,8 +42,8 @@ Be concise and helpful.`;
 const prompt = ai.definePrompt({
   name: 'chatWithYoutubeVideoPrompt',
   system: systemInstruction,
-  input: { schema: ChatWithYoutubeVideoInputSchema }, // Uses local schema
-  output: { schema: ChatWithYoutubeVideoOutputSchema }, // Uses local schema
+  input: { schema: ChatWithYoutubeVideoInputSchema }, 
+  output: { schema: ChatWithYoutubeVideoOutputSchema }, 
   prompt: `Video Transcript Context:
 ---
 {{{videoTranscript}}}
@@ -54,8 +54,6 @@ Chat History:
   {{#each chatHistory}}
     {{this.role}}: {{this.content}}
   {{/each}}
-{{else}}
-No previous messages.
 {{/if}}
 
 User's latest message: {{{userMessage}}}
@@ -67,20 +65,15 @@ AI Response:`,
 const chatWithYoutubeVideoFlow = ai.defineFlow(
   {
     name: 'chatWithYoutubeVideoFlow',
-    inputSchema: ChatWithYoutubeVideoInputSchema,   // Uses local schema
-    outputSchema: ChatWithYoutubeVideoOutputSchema, // Uses local schema
+    inputSchema: ChatWithYoutubeVideoInputSchema,
+    outputSchema: ChatWithYoutubeVideoOutputSchema,
   },
   async (input) => {
-    // Construct the prompt for Gemini, including history if available
-    // const historyForGemini = input.chatHistory?.map(msg => ({ // This is not directly used by ai.definePrompt in this configuration
-    //     role: msg.role,
-    //     parts: [{ text: msg.content }],
-    // })) || [];
-    
-    const {output} = await prompt(input); // Use the defined prompt object
+    const {output} = await prompt(input); 
 
     if (!output || !output.aiResponse) {
-      return { aiResponse: "Sorry, I couldn't generate a response at this time." };
+      console.warn('Chat flow received no valid output. Input was:', JSON.stringify(input, null, 2));
+      return { aiResponse: "Sorry, I couldn't generate a response at this time (flow processing issue)." };
     }
     return output;
   }
