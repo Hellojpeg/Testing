@@ -7,6 +7,7 @@ import { generateMealSuggestions, type GenerateMealInput, type GenerateMealOutpu
 import { generatePmd, type GeneratePmdInput as GenerateStructuredPmdInput, type GeneratePmdOutput as GenerateStructuredPmdOutput } from '@/ai/flows/generate-pmd-flow';
 import { generatePmdFromDescription, type GeneratePmdFromDescriptionInput, type GeneratePmdFromDescriptionOutput } from '@/ai/flows/generate-pmd-from-description-flow';
 import { chatWithYoutubeVideo, type ChatWithYoutubeVideoInput, type ChatWithYoutubeVideoOutput } from '@/ai/flows/chat-with-youtube-video-flow';
+import { YoutubeTranscript } from 'youtube-transcript';
 
 export async function fetchHangoutSuggestionsAction(
   input: GenerateHangoutSuggestionsInput
@@ -69,12 +70,32 @@ export async function fetchPmdFromDescriptionAction(
   }
 }
 
+export async function getVideoTranscriptAction(
+  videoUrl: string
+): Promise<{ transcript?: string; error?: string }> {
+  try {
+    const transcriptItems = await YoutubeTranscript.fetchTranscript(videoUrl);
+    if (!transcriptItems || transcriptItems.length === 0) {
+      return { error: 'No transcript found for this video, or the video is private/unavailable.' };
+    }
+    const transcriptText = transcriptItems.map((item) => item.text).join(' ');
+    return { transcript: transcriptText };
+  } catch (error: any) {
+    console.error(`Error fetching transcript for ${videoUrl}:`, error);
+    if (error.message && error.message.includes('subtitles are disabled')) {
+        return { error: 'Subtitles are disabled for this video. A transcript cannot be fetched.' };
+    }
+    if (error.message && error.message.includes('video is private')) {
+        return { error: 'This video is private. A transcript cannot be fetched.'};
+    }
+    return { error: 'Could not fetch transcript. The video might not have one, or an unexpected error occurred.' };
+  }
+}
+
 export async function fetchYoutubeChatResponseAction(
   input: ChatWithYoutubeVideoInput
 ): Promise<ChatWithYoutubeVideoOutput> {
   try {
-    // In a real app, you might have a separate step here to fetch/process the youtubeUrl
-    // For now, the videoTranscript is expected to be passed in directly (e.g., placeholder or user-supplied)
     const result = await chatWithYoutubeVideo(input);
     return result;
   } catch (error) {
