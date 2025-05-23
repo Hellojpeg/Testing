@@ -6,3 +6,9 @@ export interface HangoutSuggestion {
   hasHappened: boolean;
   createdAt: string; // ISO string date
 }
+
+export interface MealRecipe {
+  name: string;
+  recipe: string;
+  notes?: string;
+}

@@ -1,6 +1,6 @@
 
 import Link from 'next/link';
-import { PartyPopper, Home, Compass } from 'lucide-react';
+import { PartyPopper, Home, Compass, ChefHat } from 'lucide-react';
 
 export function Header() {
   return (
@@ -10,10 +10,14 @@ export function Header() {
           <PartyPopper className="h-8 w-8 text-primary group-hover:animate-pulse" />
           <h1 className="text-3xl font-bold text-primary tracking-tight">Hangout Helper</h1>
         </Link>
-        <nav className="flex items-center gap-6">
+        <nav className="flex items-center gap-2 md:gap-6">
           <Link href="/" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors flex items-center gap-1.5 py-1 px-2 rounded-md hover:bg-accent">
             <Home className="h-4 w-4" />
             Home
+          </Link>
+          <Link href="/meal-creator" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors flex items-center gap-1.5 py-1 px-2 rounded-md hover:bg-accent">
+            <ChefHat className="h-4 w-4" />
+            Meal Creator
           </Link>
           <Link href="/other-apps" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors flex items-center gap-1.5 py-1 px-2 rounded-md hover:bg-accent">
             <Compass className="h-4 w-4" />
