@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { PartyPopper, Home, Compass, ChefHat, ClipboardEdit, Menu } from 'lucide-react';
-import * as React from 'react'; // Added this import
+import * as React from 'react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from '@/components/ui/sheet';
@@ -26,8 +26,8 @@ export function Header() {
           <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-primary tracking-tight">Hangout Helper</h1>
         </Link>
 
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-1 md:gap-2 lg:gap-4">
+        {/* Desktop Navigation - Always Hidden */}
+        <nav className="hidden items-center gap-1 md:gap-2 lg:gap-4">
           {navLinks.map((link) => (
             <Button key={link.href} variant="ghost" asChild className="text-sm font-medium text-muted-foreground hover:text-primary hover:bg-accent">
               <Link href={link.href} className="flex items-center gap-1.5 py-1 px-2">
@@ -38,8 +38,8 @@ export function Header() {
           ))}
         </nav>
 
-        {/* Mobile Navigation */}
-        <div className="md:hidden">
+        {/* Mobile/Hamburger Navigation - Always Visible */}
+        <div>
           <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon">
