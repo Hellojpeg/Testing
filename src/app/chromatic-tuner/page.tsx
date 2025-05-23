@@ -84,11 +84,6 @@ export default function ChromaticTunerPage() {
         oscillatorRefTone.current.disconnect();
         oscillatorRefTone.current = null;
       }
-      // Consider closing AudioContext if not needed for a while
-      // if (audioContextRefTone.current && audioContextRefTone.current.state !== 'closed') {
-      //   audioContextRefTone.current.close();
-      //   audioContextRefTone.current = null;
-      // }
       setIsPlaying(false);
     } else {
       // Play tone
@@ -121,10 +116,6 @@ export default function ChromaticTunerPage() {
         oscillatorRefTone.current.stop();
         oscillatorRefTone.current.disconnect();
       }
-      if (audioContextRefTone.current && audioContextRefTone.current.state !== 'closed') {
-        // Delay closing to prevent issues if quickly switching tabs or re-triggering
-        // setTimeout(() => audioContextRefTone.current?.close(), 500); 
-      }
     };
   }, []);
 
@@ -132,7 +123,7 @@ export default function ChromaticTunerPage() {
   // Tuner Logic
   const processAudio = useCallback(() => {
     if (!analyserRefTuner.current || !dataArrayRefTuner.current || !audioContextRefTuner.current) {
-      animationFrameIdRefTuner.current = requestAnimationFrame(processAudio);
+      if (isListening) animationFrameIdRefTuner.current = requestAnimationFrame(processAudio);
       return;
     }
 
@@ -141,15 +132,7 @@ export default function ChromaticTunerPage() {
     // --- Placeholder for actual pitch detection ---
     // This is a very simplified and not musically accurate way to get *a* dominant frequency.
     // A proper tuner needs a robust pitch detection algorithm (e.g., Autocorrelation, YIN, AMDF, etc.).
-    // For demonstration, we'll try to find a peak. This is NOT a reliable pitch detection.
     let dominantFrequency = 0;
-    // A more robust pitch detection algorithm (like Autocorrelation or YIN) would go here.
-    // For now, we'll simulate a detected frequency or keep it null.
-    // Example: if you had a library that returned frequency:
-    // dominantFrequency = pitchDetectionLibrary(dataArrayRefTuner.current, audioContextRefTuner.current.sampleRate);
-
-    // For this placeholder, let's imagine a simple way to pick *some* frequency
-    // This is just illustrative and not a real pitch detector
     const nyquist = audioContextRefTuner.current.sampleRate / 2;
     const bufferLength = analyserRefTuner.current.frequencyBinCount;
     const freqData = new Uint8Array(bufferLength);
@@ -162,20 +145,26 @@ export default function ChromaticTunerPage() {
             maxIndex = i;
         }
     }
-    // This calculation is approximate and highly dependent on FFT size and sample rate
     dominantFrequency = maxIndex * (audioContextRefTuner.current.sampleRate / analyserRefTuner.current.fftSize);
 
-    if (maxValue > 50 && dominantFrequency > 20 && dominantFrequency < 20000) { // Some basic filtering
+    // Basic filtering: ensure there's some signal strength and frequency is within a reasonable human hearing range
+    // This threshold (maxValue > 50) is arbitrary and might need adjustment.
+    if (maxValue > 50 && dominantFrequency > 20 && dominantFrequency < 20000) { 
         setDetectedFrequency(dominantFrequency);
         setDetectedNoteDisplay(getNoteFromFrequency(dominantFrequency, parseFloat(baseTuningTuner)));
     } else {
-        // setDetectedFrequency(null); // Or keep last valid one?
-        // setDetectedNoteDisplay(null);
+        // If no clear signal or out of range, don't update, or clear previous.
+        // Clearing can make the UI jumpy; not updating keeps the last valid reading.
+        // For a tuner, it might be better to show "---" or "Listening..." if signal is weak.
+        // For now, we'll keep the last valid reading if signal is weak, or clear if it's the first time.
+        if (detectedFrequency === null) { // only clear if nothing was ever detected
+             // setDetectedNoteDisplay(null); // This line can be uncommented to clear display on weak signal
+        }
     }
     // --- End of Placeholder ---
 
-    animationFrameIdRefTuner.current = requestAnimationFrame(processAudio);
-  }, [baseTuningTuner]);
+    if (isListening) animationFrameIdRefTuner.current = requestAnimationFrame(processAudio);
+  }, [baseTuningTuner, isListening, detectedFrequency]);
 
 
   const startTuner = useCallback(async () => {
@@ -193,15 +182,14 @@ export default function ChromaticTunerPage() {
       
       const source = context.createMediaStreamSource(stream);
       analyserRefTuner.current = context.createAnalyser();
-      analyserRefTuner.current.fftSize = 2048; // Common FFT size
+      analyserRefTuner.current.fftSize = 2048; 
       dataArrayRefTuner.current = new Float32Array(analyserRefTuner.current.fftSize);
       
       source.connect(analyserRefTuner.current);
-      // Do not connect analyser to destination if you don't want to hear the mic input
-
+      
       setIsListening(true);
-      setDetectedFrequency(null);
-      setDetectedNoteDisplay(null);
+      setDetectedFrequency(null); // Reset on start
+      setDetectedNoteDisplay(null); // Reset on start
       animationFrameIdRefTuner.current = requestAnimationFrame(processAudio);
       toast({ title: "Tuner Started", description: "Listening for audio input." });
     } catch (err) {
@@ -231,17 +219,12 @@ export default function ChromaticTunerPage() {
       microphoneStreamRefTuner.current.getTracks().forEach(track => track.stop());
       microphoneStreamRefTuner.current = null;
     }
-    // if (analyserRefTuner.current) { // Source will disconnect on track stop
-    //   analyserRefTuner.current.disconnect(); 
-    // }
-    // Consider closing AudioContext if not needed for a while
-    // if (audioContextRefTuner.current && audioContextRefTuner.current.state !== 'closed') {
-    //   audioContextRefTuner.current.close();
-    //   audioContextRefTuner.current = null;
-    // }
+    // No need to disconnect analyserRefTuner.current explicitly, source stopping handles it.
     setIsListening(false);
-    setDetectedFrequency(null);
-    setDetectedNoteDisplay(null);
+    // Do not clear detectedFrequency/NoteDisplay here, so user can see the last state.
+    // If you want to clear it:
+    // setDetectedFrequency(null);
+    // setDetectedNoteDisplay(null);
     toast({ title: "Tuner Stopped" });
   }, [isListening, toast]);
 
@@ -254,19 +237,16 @@ export default function ChromaticTunerPage() {
       if (microphoneStreamRefTuner.current) {
         microphoneStreamRefTuner.current.getTracks().forEach(track => track.stop());
       }
-      // if (audioContextRefTuner.current && audioContextRefTuner.current.state !== 'closed') {
-      //    setTimeout(() => audioContextRefTuner.current?.close(), 500);
-      // }
     };
   }, []);
 
   // Stop audio when tab changes
   useEffect(() => {
     if (activeTab === "tuner" && isPlaying) {
-      handlePlayStopTone(); // Stop tone generator if tuner is selected
+      handlePlayStopTone(); 
     }
     if (activeTab === "tone-generator" && isListening) {
-      stopTuner(); // Stop tuner if tone generator is selected
+      stopTuner(); 
     }
   }, [activeTab, isPlaying, isListening, handlePlayStopTone, stopTuner]);
 
@@ -283,7 +263,7 @@ export default function ChromaticTunerPage() {
         </Alert>
       );
     }
-    if (isListening && !detectedNoteDisplay) {
+    if (isListening && !detectedNoteDisplay && !detectedFrequency) { // Show spinner only if no frequency detected yet
         return (
             <div className="flex flex-col items-center justify-center h-32">
                 <Spinner size="md" />
@@ -293,13 +273,13 @@ export default function ChromaticTunerPage() {
     }
     if (detectedNoteDisplay) {
       const { noteName, octave, cents } = detectedNoteDisplay;
-      const progressValue = 50 + (cents / 2); // Map -50 to 0, 0 to 50, +50 to 100
+      const progressValue = 50 + (cents / 2); 
 
       return (
         <div className="space-y-4 text-center">
           <div className="text-6xl font-bold text-primary">
             {noteName}
-            <span className="text-3xl align-super">{octave}</span>
+            <span className="text-3xl align-text-top text-foreground/80">{octave > 0 ? octave : ''}</span>
           </div>
           <div className="w-full max-w-xs mx-auto">
             <div className="flex justify-between text-xs text-muted-foreground mb-1">
@@ -307,7 +287,7 @@ export default function ChromaticTunerPage() {
               <span>In Tune</span>
               <span>Sharp</span>
             </div>
-            <Progress value={progressValue} className="h-3" />
+            <Progress value={progressValue} className="h-3 rounded-full" />
             <p className={`text-lg font-medium mt-2 ${cents === 0 ? 'text-green-500' : 'text-foreground'}`}>
               {cents > 0 ? `+${cents}` : cents} cents
             </p>
@@ -318,7 +298,8 @@ export default function ChromaticTunerPage() {
         </div>
       );
     }
-    return <p className="text-muted-foreground">Make some noise!</p>;
+    // Fallback if listening but nothing specific to show (e.g. weak signal after initial detection)
+    return <p className="text-muted-foreground">Make some noise or ensure microphone is picking up sound clearly.</p>;
   };
 
 
@@ -415,12 +396,12 @@ export default function ChromaticTunerPage() {
               <CardDescription>
                 Use your microphone to detect the pitch of your instrument.
                 <br />
-                <span className="text-xs text-amber-600 dark:text-amber-400">Note: Pitch detection accuracy is experimental and may vary.</span>
+                <span className="text-xs text-amber-600 dark:text-amber-400 font-medium">Important: Pitch detection accuracy is experimental and may vary, especially with complex sounds or noisy environments. This tuner is best used as a reference.</span>
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-muted/50 rounded-lg border">
-                  <div>
+              <div className="flex flex-col sm:flex-row items-center sm:justify-between gap-4 p-4 bg-muted/50 rounded-lg border">
+                  <div className="w-full sm:w-auto">
                     <Label htmlFor="tuner-base-tuning" className="text-sm">Base Tuning (A4)</Label>
                     <Input
                       id="tuner-base-tuning"
@@ -428,17 +409,17 @@ export default function ChromaticTunerPage() {
                       value={baseTuningTuner}
                       onChange={(e) => setBaseTuningTuner(e.target.value)}
                       placeholder="e.g., 440"
-                      className="mt-1 w-28"
+                      className="mt-1 w-full sm:w-28"
                       disabled={isListening}
                     />
                   </div>
-                  <Button size="lg" onClick={isListening ? stopTuner : startTuner} className="min-w-[180px]">
+                  <Button size="lg" onClick={isListening ? stopTuner : startTuner} className="w-full sm:w-auto min-w-[180px]">
                     {isListening ? <Mic className="mr-2 h-5 w-5 animate-pulse" /> : <Mic className="mr-2 h-5 w-5" />}
                     {isListening ? 'Stop Listening' : 'Start Listening'}
                   </Button>
               </div>
               
-              <div className="min-h-[150px] flex items-center justify-center p-4 border rounded-md bg-background">
+              <div className="min-h-[200px] flex items-center justify-center p-4 border rounded-md bg-background shadow-inner">
                 {renderTunerDisplay()}
               </div>
             </CardContent>
