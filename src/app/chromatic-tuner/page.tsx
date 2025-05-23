@@ -33,12 +33,6 @@ const PIANO_LAYOUT: { note: string; type: 'white' | 'black'; shortLabel?: string
 const getFrequency = (note: string, octave: number, baseA4: number = 440): number => {
   const noteIndex = NOTES.indexOf(note);
   if (noteIndex === -1) return 0;
-  // A4 is the 9th note in our 0-indexed NOTES array (A)
-  // C4 is -9 semitones from A4. D4 is -7, etc.
-  // The calculation needs to be relative to A4.
-  // Semitones from A0 = noteIndex + (octave * 12)
-  // A4 has index 9. (noteIndex - 9) gives semitones relative to A in the same octave.
-  // (octave - 4) * 12 gives semitones due to octave difference from octave 4.
   let semitones = (noteIndex - NOTES.indexOf('A')) + (octave - 4) * 12;
   return baseA4 * Math.pow(2, semitones / 12);
 };
@@ -80,7 +74,7 @@ const PianoKeyboard: React.FC<PianoKeyboardProps> = ({ currentPianoOctave, onKey
             variant="outline"
             onMouseDown={() => onKeyInteraction(keyData.note, currentPianoOctave, 'attack')}
             onMouseUp={() => onKeyInteraction(keyData.note, currentPianoOctave, 'release')}
-            onMouseLeave={() => onKeyInteraction(keyData.note, currentPianoOctave, 'release')} // Release if mouse leaves while pressed
+            onMouseLeave={() => onKeyInteraction(keyData.note, currentPianoOctave, 'release')} 
             onTouchStart={(e) => { e.preventDefault(); onKeyInteraction(keyData.note, currentPianoOctave, 'attack'); }}
             onTouchEnd={(e) => { e.preventDefault(); onKeyInteraction(keyData.note, currentPianoOctave, 'release'); }}
 
@@ -97,11 +91,9 @@ const PianoKeyboard: React.FC<PianoKeyboardProps> = ({ currentPianoOctave, onKey
         ))}
       </div>
       {/* Black keys */}
-      {PIANO_LAYOUT.filter(k => k.type === 'black').map((keyData, index) => {
+      {PIANO_LAYOUT.filter(k => k.type === 'black').map((keyData) => {
         
         const getLeft = (note: string) => {
-          const whiteKeyIndex = PIANO_LAYOUT.findIndex(k => k.note === note[0]); // e.g. C for C#
-          const multiplier = whiteKeyIndex === 2 || whiteKeyIndex === 6 || whiteKeyIndex === 9 ? 0.70 : 0.60; // Adjust for E/F and B/C gap
           if (note === 'C#') return `calc(var(--white-key-width) * 0.65 - var(--black-key-width) / 2)`;
           if (note === 'D#') return `calc(var(--white-key-width) * 1.70 - var(--black-key-width) / 2)`;
           if (note === 'F#') return `calc(var(--white-key-width) * 3.65 - var(--black-key-width) / 2)`;
@@ -127,13 +119,9 @@ const PianoKeyboard: React.FC<PianoKeyboardProps> = ({ currentPianoOctave, onKey
             )}
             style={{ 
               left: getLeft(keyData.note),
-              // CSS variables for responsive key widths
-              '--white-key-width': '2rem', // Default for w-8
-              '--black-key-width': '1.25rem' // Default for w-5
+              '--white-key-width': '2rem', 
+              '--black-key-width': '1.25rem'
             } as React.CSSProperties}
-            // Apply sm styles using a media query or a more complex JS solution if needed for style prop
-            // For simplicity, the above uses fixed calculations that are more aligned with the smaller size.
-            // True responsive `style.left` would need JS observation or CSS container queries (future).
           >
             <span className="font-mono text-xs opacity-70 absolute top-1">{keyData.qwertyDisplay}</span>
             <span className="mt-auto mb-1">{keyData.shortLabel || keyData.note}</span>
@@ -142,8 +130,12 @@ const PianoKeyboard: React.FC<PianoKeyboardProps> = ({ currentPianoOctave, onKey
       })}
        <style jsx>{`
         @media (min-width: 640px) { /* sm breakpoint */
-          .flex.justify-center > div > button {
+          .flex.justify-center > div > button { /* This targets white keys */
             --white-key-width: 2.5rem; /* sm:w-10 */
+          }
+          /* For black keys, update style prop directly or through a more complex system if needed for full responsiveness */
+          /* The current getLeft uses CSS variables that are updated here for the parent context. */
+           div[class*="absolute"] { /* This targets black keys based on their absolute positioning class */
             --black-key-width: 1.5rem;  /* sm:w-6 */
           }
         }
@@ -156,14 +148,12 @@ const PianoKeyboard: React.FC<PianoKeyboardProps> = ({ currentPianoOctave, onKey
 export default function ChromaticTunerPage() {
   const { toast } = useToast();
 
-  // --- Tone Generator State ---
   const [currentPianoOctave, setCurrentPianoOctave] = useState(4);
   const [baseTuningTone, setBaseTuningTone] = useState('440');
   const synthRef = useRef<Tone.PolySynth | null>(null);
-  const [activeNotes, setActiveNotes] = useState<Set<string>>(new Set()); // Stores "NoteOctave" like "C4"
+  const [activeNotes, setActiveNotes] = useState<Set<string>>(new Set()); 
   const [toneJsInitialized, setToneJsInitialized] = useState(false);
 
-  // --- Tuner State ---
   const [isListening, setIsListening] = useState(false);
   const [tunerError, setTunerError] = useState<string | null>(null);
   const [detectedFrequency, setDetectedFrequency] = useState<number | null>(null);
@@ -175,16 +165,15 @@ export default function ChromaticTunerPage() {
   const animationFrameIdRefTuner = useRef<number | null>(null);
   const dataArrayRefTuner = useRef<Float32Array | null>(null);
 
-  // --- Shared ---
   const [activeTab, setActiveTab] = useState("tone-generator");
 
 
-  const initializeToneJs = async () => {
+  const initializeToneJs = useCallback(async () => {
     if (toneJsInitialized) return;
     try {
       await Tone.start();
       synthRef.current = new Tone.PolySynth(Tone.Synth, {
-        oscillator: { type: 'sine' }, // Simple sine wave
+        oscillator: { type: 'sine' },
         envelope: {
           attack: 0.005,
           decay: 0.1,
@@ -198,36 +187,27 @@ export default function ChromaticTunerPage() {
       console.error("Failed to initialize Tone.js:", error);
       toast({ title: "Audio Error", description: "Could not initialize audio engine.", variant: "destructive" });
     }
-  };
+  }, [toneJsInitialized, toast]);
 
 
   const handlePianoKeyInteraction = useCallback((note: string, octave: number, type: 'attack' | 'release') => {
     if (!toneJsInitialized && type === 'attack') {
-      initializeToneJs(); // Ensure Tone.js is started on first interaction
-      // Wait a brief moment for Tone.js to initialize before playing the note
-      setTimeout(() => {
+      initializeToneJs(); 
+      setTimeout(() => { // Give Tone.js a moment to initialize
         if (synthRef.current) {
            const freq = getFrequency(note, octave, parseFloat(baseTuningTone));
            if (freq > 0) {
              if (type === 'attack') {
                synthRef.current.triggerAttack(freq);
                setActiveNotes(prev => new Set(prev).add(`${note}${octave}`));
-             } else {
-               synthRef.current.triggerRelease(freq);
-               setActiveNotes(prev => {
-                 const newSet = new Set(prev);
-                 newSet.delete(`${note}${octave}`);
-                 return newSet;
-               });
              }
            }
         }
-      }, 100); // 100ms delay, adjust if needed
+      }, 100);
       return;
     }
-
-
     if (!synthRef.current) return;
+
     const freq = getFrequency(note, octave, parseFloat(baseTuningTone));
     if (freq <= 0) return;
 
@@ -242,7 +222,7 @@ export default function ChromaticTunerPage() {
         return newSet;
       });
     }
-  }, [baseTuningTone, toneJsInitialized]);
+  }, [baseTuningTone, toneJsInitialized, initializeToneJs]);
   
 
   const changePianoOctave = (direction: 'up' | 'down') => {
@@ -257,23 +237,28 @@ export default function ChromaticTunerPage() {
 
   // QWERTY Keyboard Handler
   useEffect(() => {
-    if (activeTab !== 'tone-generator') return;
-
+    if (activeTab !== 'tone-generator') {
+      if (synthRef.current) {
+        synthRef.current.releaseAll();
+        setActiveNotes(new Set());
+      }
+      return;
+    }
+  
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.repeat) return; // Ignore repeated keydown events from holding a key
+      if (event.repeat) return; 
       const key = event.key.toLowerCase();
       const pianoKeyData = PIANO_LAYOUT.find(pk => pk.qwertyKey === key);
       if (pianoKeyData) {
-        // Prevent default browser actions for keys like 'space' or 'enter' if mapped
         if ([' ', 'enter'].includes(key)) event.preventDefault();
         handlePianoKeyInteraction(pianoKeyData.note, currentPianoOctave, 'attack');
-      } else if (key === 'z') { // Octave down
+      } else if (key === 'z') { 
         changePianoOctave('down');
-      } else if (key === 'x') { // Octave up
+      } else if (key === 'x') { 
         changePianoOctave('up');
       }
     };
-
+  
     const handleKeyUp = (event: KeyboardEvent) => {
       const key = event.key.toLowerCase();
       const pianoKeyData = PIANO_LAYOUT.find(pk => pk.qwertyKey === key);
@@ -281,28 +266,21 @@ export default function ChromaticTunerPage() {
         handlePianoKeyInteraction(pianoKeyData.note, currentPianoOctave, 'release');
       }
     };
-
+  
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
-
+  
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
-      // Release any active notes when component unmounts or tab changes
       if (synthRef.current) {
-        activeNotes.forEach(noteOctave => {
-            const note = noteOctave.replace(/[0-9]/g, '');
-            const octave = parseInt(noteOctave.replace(/[^0-9]/g, ''), 10);
-            const freq = getFrequency(note, octave, parseFloat(baseTuningTone));
-            if (freq > 0) synthRef.current?.triggerRelease(freq);
-        });
-        setActiveNotes(new Set());
+        synthRef.current.releaseAll();
+        setActiveNotes(new Set()); 
       }
     };
-  }, [activeTab, currentPianoOctave, handlePianoKeyInteraction, activeNotes, baseTuningTone]);
+  }, [activeTab, currentPianoOctave, handlePianoKeyInteraction]);
 
 
-  // Tuner Logic (remains the same)
   const processAudio = useCallback(() => {
     if (!analyserRefTuner.current || !dataArrayRefTuner.current || !audioContextRefTuner.current) {
       if (isListening) animationFrameIdRefTuner.current = requestAnimationFrame(processAudio);
@@ -312,7 +290,6 @@ export default function ChromaticTunerPage() {
     analyserRefTuner.current.getFloatTimeDomainData(dataArrayRefTuner.current);
     
     let dominantFrequency = 0;
-    // Simplified frequency detection - NOT a robust pitch detection algorithm
     const bufferLength = analyserRefTuner.current.frequencyBinCount;
     const freqData = new Uint8Array(bufferLength);
     analyserRefTuner.current.getByteFrequencyData(freqData);
@@ -330,13 +307,12 @@ export default function ChromaticTunerPage() {
         setDetectedFrequency(dominantFrequency);
         setDetectedNoteDisplay(getNoteFromFrequency(dominantFrequency, parseFloat(baseTuningTuner)));
     } else {
-        if (detectedFrequency === null) { // Only clear display if it was already null, to avoid flickering
-            // setDetectedNoteDisplay(null); // Can be too aggressive, let's keep last good reading briefly
-        }
+        // Avoid rapidly clearing the display if it was just a momentary silence or noise
+        // setDetectedNoteDisplay(null); // Consider if this is too aggressive
     }
 
     if (isListening) animationFrameIdRefTuner.current = requestAnimationFrame(processAudio);
-  }, [baseTuningTuner, isListening, detectedFrequency]);
+  }, [baseTuningTuner, isListening]);
 
 
   const startTuner = useCallback(async () => {
@@ -347,13 +323,13 @@ export default function ChromaticTunerPage() {
       if (!audioContextRefTuner.current || audioContextRefTuner.current.state === 'closed') {
         audioContextRefTuner.current = new (window.AudioContext || (window as any).webkitAudioContext)();
       }
-      const context = audioContextRefTuner.current;
+      await audioContextRefTuner.current.resume(); // Ensure context is running
 
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
       microphoneStreamRefTuner.current = stream;
       
-      const source = context.createMediaStreamSource(stream);
-      analyserRefTuner.current = context.createAnalyser();
+      const source = audioContextRefTuner.current.createMediaStreamSource(stream);
+      analyserRefTuner.current = audioContextRefTuner.current.createAnalyser();
       analyserRefTuner.current.fftSize = 2048; 
       dataArrayRefTuner.current = new Float32Array(analyserRefTuner.current.fftSize);
       
@@ -391,15 +367,14 @@ export default function ChromaticTunerPage() {
       microphoneStreamRefTuner.current.getTracks().forEach(track => track.stop());
       microphoneStreamRefTuner.current = null;
     }
+    // Don't close the audio context here, as it might be shared or needed again soon.
+    // It will be closed on component unmount.
     setIsListening(false);
-    // setDetectedNoteDisplay(null); // Optionally clear display on stop
     toast({ title: "Tuner Stopped" });
   }, [isListening, toast]);
 
-  // Cleanup audio resources
   useEffect(() => {
     return () => {
-      // Tuner cleanup
       if (animationFrameIdRefTuner.current) {
         cancelAnimationFrame(animationFrameIdRefTuner.current);
       }
@@ -409,21 +384,16 @@ export default function ChromaticTunerPage() {
       if (audioContextRefTuner.current && audioContextRefTuner.current.state !== 'closed') {
         audioContextRefTuner.current.close().catch(e => console.error("Error closing tuner audio context:", e));
       }
-      // Tone.js synth cleanup
       if (synthRef.current) {
+        synthRef.current.releaseAll();
         synthRef.current.dispose();
         synthRef.current = null;
       }
-       // Tone.js global context might not need explicit closing like this,
-       // but good to ensure synth is disposed.
-       // If Tone.context.state !== 'closed' Tone.context.close();
     };
   }, []);
 
   useEffect(() => {
-    // When switching tabs, stop active processes
     if (activeTab === "tuner") {
-      // If synth was playing, release all notes
       if (synthRef.current) {
         synthRef.current.releaseAll();
         setActiveNotes(new Set());
@@ -457,7 +427,7 @@ export default function ChromaticTunerPage() {
     }
     if (detectedNoteDisplay) {
       const { noteName, octave, cents } = detectedNoteDisplay;
-      const progressValue = 50 + (cents / 2); // Map -100 to 100 cents to 0-100 progress
+      const progressValue = 50 + (cents / 2); 
 
       return (
         <div className="space-y-4 text-center">
@@ -482,7 +452,6 @@ export default function ChromaticTunerPage() {
         </div>
       );
     }
-    // Fallback message if listening but no note is clearly detected yet.
     return <p className="text-muted-foreground">Make some noise or ensure microphone is picking up sound clearly.</p>;
   };
 
@@ -518,7 +487,7 @@ export default function ChromaticTunerPage() {
               </CardTitle>
               <CardDescription>
                 Click the piano keys or use your keyboard (QWERTY layout: A,S,D... for white keys; W,E,T... for black keys; Z/X for octave change).
-                {!toneJsInitialized && " Click a piano key to initialize the audio engine."}
+                {!toneJsInitialized && " Click a piano key or the button below to initialize the audio engine."}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -552,8 +521,6 @@ export default function ChromaticTunerPage() {
                   value={baseTuningTone}
                   onChange={(e) => {
                       setBaseTuningTone(e.target.value);
-                      // If synth exists and notes are active, re-trigger with new tuning. This is complex.
-                      // For now, changing tuning won't affect currently sounding notes until they are re-triggered.
                   }}
                   placeholder="e.g., 440"
                   className="mt-1"
@@ -566,8 +533,6 @@ export default function ChromaticTunerPage() {
                     <Keyboard className="mr-2 h-5 w-5" /> Enable Piano Keyboard
                  </Button>
               )}
-             {/* The "Play Tone" button is removed as interaction is now direct via keys/keyboard */}
-
             </CardContent>
           </Card>
         </TabsContent>
@@ -615,4 +580,3 @@ export default function ChromaticTunerPage() {
     </div>
   );
 }
-
