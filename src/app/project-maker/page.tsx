@@ -4,13 +4,14 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-// Removed direct Zod import, schemas will come from @/lib/schemas/pmd
+import MDEditor from '@uiw/react-md-editor';
+import rehypeSanitize from 'rehype-sanitize';
 
-// Import the action and types from the new schema location
+
 import { fetchPmdFromDescriptionAction } from '@/lib/actions';
 import { 
-  GeneratePmdFromDescriptionInputSchema, // Schema object for validation
-  type GeneratePmdFromDescriptionInput // Type for form values
+  GeneratePmdFromDescriptionInputSchema, 
+  type GeneratePmdFromDescriptionInput 
 } from '@/lib/schemas/pmd';
 
 
@@ -20,11 +21,10 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
 import { Spinner } from '@/components/ui/spinner';
-import { ClipboardEdit, FileText, Download, Sparkles, ArrowLeft, Edit3, RotateCcw, Lightbulb } from 'lucide-react';
+import { ClipboardEdit, FileText, Download, Sparkles, ArrowLeft, Edit3, RotateCcw, Lightbulb, Printer } from 'lucide-react';
 
 type CreationMode = 'undecided' | 'ai' | 'manual';
 
-// Use the imported schema for form values type
 type AiFreeFormPmdValues = GeneratePmdFromDescriptionInput;
 
 export default function ProjectMakerPage() {
@@ -34,7 +34,7 @@ export default function ProjectMakerPage() {
   const { toast } = useToast();
 
   const form = useForm<AiFreeFormPmdValues>({
-    resolver: zodResolver(GeneratePmdFromDescriptionInputSchema), // Use imported schema object
+    resolver: zodResolver(GeneratePmdFromDescriptionInputSchema), 
     defaultValues: {
       description: '',
     },
@@ -44,7 +44,6 @@ export default function ProjectMakerPage() {
     setIsLoading(true);
     setPmdContent(null);
     try {
-      // Call the new action
       const result = await fetchPmdFromDescriptionAction(data);
       if (result.pmdContent) {
         setPmdContent(result.pmdContent);
@@ -80,7 +79,6 @@ export default function ProjectMakerPage() {
       });
       return;
     }
-    // Try to get a project title from the PMD content for the filename, or default
     const titleMatch = pmdContent.match(/^#\s*(.*)/m);
     const projectTitle = titleMatch && titleMatch[1] ? titleMatch[1].trim() : 'Generated_Project_Document';
     const filename = `${projectTitle.replace(/\s+/g, '_')}_PMD.md`;
@@ -109,11 +107,19 @@ export default function ProjectMakerPage() {
     }
   };
 
+  const handlePrint = () => {
+    window.print();
+    toast({
+      title: "Printing Initiated",
+      description: "Your browser's print dialog should appear. For best results, you might want to adjust print settings (e.g., scale, layout).",
+    });
+  };
+
   const handleSetMode = (mode: CreationMode) => {
     setCreationMode(mode);
     setPmdContent(null);
     setIsLoading(false);
-    form.reset({ description: '' }); // Reset form for AI mode
+    form.reset({ description: '' }); 
   };
   
   const pageDescription = creationMode === 'undecided' 
@@ -226,7 +232,7 @@ export default function ProjectMakerPage() {
         </Form>
       )}
       
-      {isLoading && creationMode === 'ai' && !pmdContent && ( // Show global spinner if loading and no content yet for AI mode
+      {isLoading && creationMode === 'ai' && !pmdContent && ( 
         <div className="text-center py-10">
           <Spinner size="lg" />
           <p className="text-muted-foreground mt-4">AI is drafting your PMD, please wait...</p>
@@ -238,29 +244,38 @@ export default function ProjectMakerPage() {
           <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
               <CardTitle className="text-2xl">Generated Project Management Document</CardTitle>
-              <CardDescription>Review the generated PMD. You can copy or export it as Markdown.</CardDescription>
+              <CardDescription>Review and edit the generated PMD. You can copy, export, or print it.</CardDescription>
             </div>
-            <div className="flex gap-2 w-full sm:w-auto">
-                <Button onClick={() => handleSetMode('undecided')} variant="outline" className="w-full sm:w-auto">
+            <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+                <Button onClick={() => handleSetMode('undecided')} variant="outline" className="w-full grow sm:grow-0">
                     <RotateCcw className="mr-2 h-5 w-5" />
                     Start New
                 </Button>
-                <Button onClick={handleExport} variant="default" size="lg" disabled={!pmdContent} className="w-full sm:w-auto">
+                <Button onClick={handleExport} variant="default" size="lg" disabled={!pmdContent} className="w-full grow sm:grow-0">
                     <Download className="mr-2 h-5 w-5" />
                     Export as .md
+                </Button>
+                 <Button onClick={handlePrint} variant="outline" size="lg" disabled={!pmdContent} className="w-full grow sm:grow-0">
+                    <Printer className="mr-2 h-5 w-5" />
+                    Print
                 </Button>
             </div>
           </CardHeader>
           <CardContent>
-            <Textarea
-              readOnly
-              value={pmdContent}
-              className="min-h-[500px] text-sm bg-muted/30 whitespace-pre-wrap font-mono"
-              rows={30}
-            />
+            <div data-color-mode="light" className="prose max-w-none">
+              <MDEditor
+                value={pmdContent}
+                onChange={(value) => setPmdContent(value || '')}
+                preview="edit" 
+                height={600}
+                rehypePlugins={[[rehypeSanitize]]}
+                visibleDragbar={false}
+              />
+            </div>
           </CardContent>
         </Card>
       )}
     </div>
   );
 }
+
