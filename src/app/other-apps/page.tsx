@@ -3,7 +3,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { AppWindow, ChefHat, ClipboardEdit, ArrowRight, Edit, Youtube, Music, BookOpenText, Brain, Link as LinkLucideIcon, Globe } from 'lucide-react';
+import { AppWindow, ChefHat, ClipboardEdit, ArrowRight, Edit, Youtube, Music, BookOpenText, Brain, Link as LinkLucideIcon, Globe, Calculator } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -23,6 +23,14 @@ const apps = [
     icon: <ClipboardEdit className="h-8 w-8 mb-2 text-primary" />,
     imageSrc: "https://placehold.co/600x400.png",
     imageHint: "project planning document",
+  },
+  {
+    title: "Calculator",
+    description: "A simple and elegant calculator for everyday arithmetic operations.",
+    href: "/calculator",
+    icon: <Calculator className="h-8 w-8 mb-2 text-primary" />,
+    imageSrc: "https://placehold.co/600x400.png",
+    imageHint: "math numbers calculation",
   },
   {
     title: "Chromatic Tuner",
@@ -57,6 +65,14 @@ const apps = [
     imageHint: "education planning teaching",
   },
   {
+    title: "Link Chat",
+    description: "Paste any web page link to fetch its HTML content, then chat with an AI about what's on the page.",
+    href: "/link-chat",
+    icon: <Globe className="h-8 w-8 mb-2 text-primary" />, 
+    imageSrc: "https://placehold.co/600x400.png",
+    imageHint: "web browsing chat",
+  },
+  {
     title: "Study Guide Creator",
     description: "Turn any text content into a deep study guide, complete with flashcards, definitions, and practice questions.",
     href: "/study-guide-creator",
@@ -71,14 +87,6 @@ const apps = [
     icon: <Youtube className="h-8 w-8 mb-2 text-primary" />,
     imageSrc: "https://placehold.co/600x400.png",
     imageHint: "video chat play",
-  },
-  {
-    title: "Link Chat",
-    description: "Paste any web page link to fetch its HTML content, then chat with an AI about what's on the page.",
-    href: "/link-chat",
-    icon: <Globe className="h-8 w-8 mb-2 text-primary" />, // Changed from LinkLucideIcon for consistency with page
-    imageSrc: "https://placehold.co/600x400.png",
-    imageHint: "web browsing chat",
   },
 ];
 

@@ -2,7 +2,7 @@
 'use client';
 
 import Link from 'next/link';
-import { PartyPopper, Home, Compass, ChefHat, ClipboardEdit, Menu, Edit, Youtube as YoutubeIcon, Music, BookOpenText, Brain, Link as LinkLucideIcon } from 'lucide-react';
+import { PartyPopper, Home, Compass, ChefHat, ClipboardEdit, Menu, Edit, Youtube as YoutubeIcon, Music, BookOpenText, Brain, Link as LinkLucideIcon, Calculator } from 'lucide-react';
 import * as React from 'react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -21,6 +21,7 @@ export function Header() {
     { href: "/chromatic-tuner", label: "Chromatic Tuner", icon: <Music className="h-5 w-5" /> },
     { href: "/lesson-plan-maker", label: "Lesson Plan Maker", icon: <BookOpenText className="h-5 w-5" /> },
     { href: "/study-guide-creator", label: "Study Guide Creator", icon: <Brain className="h-5 w-5" /> },
+    { href: "/calculator", label: "Calculator", icon: <Calculator className="h-5 w-5" /> },
     { href: "/other-apps", label: "Other Apps", icon: <Compass className="h-5 w-5" /> },
   ];
 
@@ -32,7 +33,7 @@ export function Header() {
           <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-primary tracking-tight">Hangout Helper</h1>
         </Link>
 
-        {/* Desktop Navigation - Always Hidden */}
+        {/* Desktop Navigation - Always Hidden based on previous request */}
         <nav className="hidden items-center gap-1 md:gap-2 lg:gap-4">
           {navLinks.map((link) => (
             <Button key={link.href} variant="ghost" asChild className="text-sm font-medium text-muted-foreground hover:text-primary hover:bg-accent">
