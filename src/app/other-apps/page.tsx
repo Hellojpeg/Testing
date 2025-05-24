@@ -3,10 +3,11 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { AppWindow, ChefHat, ClipboardEdit, ArrowRight, Edit, Youtube, Music, BookOpenText, Brain, Link as LinkLucideIcon, Globe, Calculator, DraftingCompass } from 'lucide-react';
+import { AppWindow, ChefHat, ClipboardEdit, ArrowRight, Edit, Youtube, Music, BookOpenText, Brain, Link as LinkLucideIcon, Globe, Calculator, DraftingCompass, Settings2 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
+// Apps that are considered "finished" or more complete
 const apps = [
   { 
     title: "AI Meal Creator", 
@@ -33,14 +34,6 @@ const apps = [
     imageHint: "math numbers calculation",
   },
   {
-    title: "Chromatic Tuner",
-    description: "Tune your instruments with a chromatic tuner and generate reference tones. Uses your device's microphone.",
-    href: "/chromatic-tuner",
-    icon: <Music className="h-8 w-8 mb-2 text-primary" />,
-    imageSrc: "https://placehold.co/600x400.png",
-    imageHint: "music guitar tuning",
-  },
-  {
     title: "Deal Out - AI Editor",
     description: "A next-generation word processor with AI-assisted writing, refinement, and composition tools.",
     href: "/deal-out",
@@ -48,19 +41,11 @@ const apps = [
     imageSrc: "https://placehold.co/600x400.png",
     imageHint: "writing document editor",
   },
-  {
-    title: "Drafting Board",
-    description: "A simple 2D drafting tool for creating basic architectural plans and diagrams.",
-    href: "/drafting-board",
-    icon: <DraftingCompass className="h-8 w-8 mb-2 text-primary" />,
-    imageSrc: "https://placehold.co/600x400.png",
-    imageHint: "architecture drawing blueprint",
-  },
   { 
     title: "Hangout Helper", 
     description: "Discover exciting hangout ideas with AI-powered suggestions, saved lists, and scavenger hunt generation.", 
     href: "/",
-    icon: <AppWindow className="h-8 w-8 mb-2 text-primary" />, // Default icon for main app
+    icon: <AppWindow className="h-8 w-8 mb-2 text-primary" />,
     imageSrc: "https://placehold.co/600x400.png",
     imageHint: "friends fun",
   },
@@ -96,6 +81,23 @@ const apps = [
     imageSrc: "https://placehold.co/600x400.png",
     imageHint: "video chat play",
   },
+  // Moved to /development page:
+  // {
+  //   title: "Chromatic Tuner",
+  //   description: "Tune your instruments with a chromatic tuner and generate reference tones. Uses your device's microphone.",
+  //   href: "/chromatic-tuner",
+  //   icon: <Music className="h-8 w-8 mb-2 text-primary" />,
+  //   imageSrc: "https://placehold.co/600x400.png",
+  //   imageHint: "music guitar tuning",
+  // },
+  // {
+  //   title: "Drafting Board",
+  //   description: "A simple 2D drafting tool for creating basic architectural plans and diagrams.",
+  //   href: "/drafting-board",
+  //   icon: <DraftingCompass className="h-8 w-8 mb-2 text-primary" />,
+  //   imageSrc: "https://placehold.co/600x400.png",
+  //   imageHint: "architecture drawing blueprint",
+  // },
 ];
 
 export default function OtherAppsPage() {
@@ -107,7 +109,8 @@ export default function OtherAppsPage() {
           Discover Our Applications
         </h1>
         <p className="text-muted-foreground max-w-xl mx-auto">
-          Explore the suite of AI-powered tools designed to help you with various tasks.
+          Explore the suite of AI-powered tools designed to help you with various tasks. 
+          Some experimental apps are listed under "In Development".
         </p>
       </section>
 
@@ -143,5 +146,3 @@ export default function OtherAppsPage() {
     </div>
   );
 }
-
-    

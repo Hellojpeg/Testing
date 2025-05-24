@@ -2,7 +2,7 @@
 'use client';
 
 import Link from 'next/link';
-import { PartyPopper, Home, Compass, ChefHat, ClipboardEdit, Menu, Edit, Youtube as YoutubeIcon, Music, BookOpenText, Brain, Link as LinkLucideIcon, Calculator, DraftingCompass } from 'lucide-react';
+import { PartyPopper, Home, Compass, ChefHat, ClipboardEdit, Menu, Edit, Youtube as YoutubeIcon, Music, BookOpenText, Brain, Link as LinkLucideIcon, Calculator, DraftingCompass, Settings2 } from 'lucide-react';
 import * as React from 'react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -23,7 +23,8 @@ export function Header() {
     { href: "/study-guide-creator", label: "Study Guide Creator", icon: <Brain className="h-5 w-5" /> },
     { href: "/calculator", label: "Calculator", icon: <Calculator className="h-5 w-5" /> },
     { href: "/drafting-board", label: "Drafting Board", icon: <DraftingCompass className="h-5 w-5" /> },
-    { href: "/other-apps", label: "Other Apps", icon: <Compass className="h-5 w-5" /> },
+    { href: "/development", label: "In Development", icon: <Settings2 className="h-5 w-5" /> },
+    { href: "/other-apps", label: "All Apps", icon: <Compass className="h-5 w-5" /> },
   ];
 
   return (
@@ -36,14 +37,7 @@ export function Header() {
 
         {/* Desktop Navigation - Always Hidden based on previous request */}
         <nav className="hidden items-center gap-1 md:gap-2 lg:gap-4">
-          {navLinks.map((link) => (
-            <Button key={link.href} variant="ghost" asChild className="text-sm font-medium text-muted-foreground hover:text-primary hover:bg-accent">
-              <Link href={link.href} className="flex items-center gap-1.5 py-1 px-2">
-                {React.cloneElement(link.icon, { className: "h-4 w-4"})}
-                {link.label}
-              </Link>
-            </Button>
-          ))}
+          {/* Desktop links can be added here if needed in the future */}
         </nav>
 
         {/* Mobile/Hamburger Navigation - Always Visible */}
@@ -82,5 +76,3 @@ export function Header() {
     </header>
   );
 }
-
-    
