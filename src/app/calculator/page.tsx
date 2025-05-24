@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calculator as CalculatorIcon, Delete } from 'lucide-react'; // Using Delete for backspace
@@ -81,34 +81,6 @@ const CalculatorPage = () => {
     }
   }, [currentOperand, overwrite]);
 
-  const chooseOperation = useCallback((selectedOperation: string) => {
-    if (currentOperand === "Error") {
-      clear();
-      return;
-    }
-    if (currentOperand === '0' && previousOperand == null) return;
-
-    if (previousOperand != null && operation != null && !overwrite) {
-       // Capture currentOperand before compute changes it
-      const currentValBeforeCompute = currentOperand;
-      compute(); 
-      // After compute, currentOperand holds the result. This result becomes the new previousOperand.
-      // Need to use a functional update for setPreviousOperand if compute is also setting state.
-      // However, compute already sets currentOperand to the result and previousOperand to null.
-      // So, we want the result (now in currentOperand) to be the new previousOperand.
-      setCurrentOperand(currentResult => {
-         setPreviousOperand(currentResult); // currentResult is the result of the prior operation
-         setOperation(selectedOperation);
-         setOverwrite(true);
-         return currentResult; // CurrentOperand remains the result, ready to be overwritten or used
-      });
-    } else {
-      setPreviousOperand(currentOperand);
-      setOperation(selectedOperation);
-      setOverwrite(true);
-    }
-  }, [currentOperand, previousOperand, operation, overwrite, clear]); // Added clear, compute to deps
-
   const compute = useCallback(() => {
     if (previousOperand == null || operation == null || currentOperand == null || currentOperand === "Error") {
       return;
@@ -164,10 +136,37 @@ const CalculatorPage = () => {
     setOverwrite(true);
   }, [previousOperand, currentOperand, operation]);
 
-  // Add compute to chooseOperation's dependency array
+  const chooseOperation = useCallback((selectedOperation: string) => {
+    if (currentOperand === "Error") {
+      clear();
+      return;
+    }
+    if (currentOperand === '0' && previousOperand == null) return;
+
+    if (previousOperand != null && operation != null && !overwrite) {
+      compute(); 
+      // After compute, currentOperand holds the result.
+      // This result becomes the new previousOperand.
+      // We use functional update for setCurrentOperand to ensure it uses the latest state
+      // after compute potentially updates currentOperand.
+      setCurrentOperand(currentResult => {
+         setPreviousOperand(currentResult); 
+         setOperation(selectedOperation);
+         setOverwrite(true);
+         return currentResult; // Keep currentOperand as the result for display
+      });
+    } else {
+      setPreviousOperand(currentOperand);
+      setOperation(selectedOperation);
+      setOverwrite(true);
+    }
+  }, [currentOperand, previousOperand, operation, overwrite, clear, compute]);
+
+
+  // Add compute to chooseOperation's dependency array (indirectly via chooseOperation's own deps)
   useEffect(() => {
     // This effect is to ensure chooseOperation is updated if compute changes.
-    // It's a bit of a workaround for complex state interactions.
+    // It's part of managing complex state interactions.
   }, [compute]);
 
 
