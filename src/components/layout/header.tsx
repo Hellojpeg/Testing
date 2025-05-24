@@ -2,7 +2,7 @@
 'use client';
 
 import Link from 'next/link';
-import { PartyPopper, Home, Compass, ChefHat, ClipboardEdit, Menu, Edit, Youtube as YoutubeIcon, Music, BookOpenText, Brain, Link as LinkLucideIcon, Calculator } from 'lucide-react';
+import { PartyPopper, Home, Compass, ChefHat, ClipboardEdit, Menu, Edit, Youtube as YoutubeIcon, Music, BookOpenText, Brain, Link as LinkLucideIcon, Calculator, DraftingCompass } from 'lucide-react';
 import * as React from 'react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -22,6 +22,7 @@ export function Header() {
     { href: "/lesson-plan-maker", label: "Lesson Plan Maker", icon: <BookOpenText className="h-5 w-5" /> },
     { href: "/study-guide-creator", label: "Study Guide Creator", icon: <Brain className="h-5 w-5" /> },
     { href: "/calculator", label: "Calculator", icon: <Calculator className="h-5 w-5" /> },
+    { href: "/drafting-board", label: "Drafting Board", icon: <DraftingCompass className="h-5 w-5" /> },
     { href: "/other-apps", label: "Other Apps", icon: <Compass className="h-5 w-5" /> },
   ];
 

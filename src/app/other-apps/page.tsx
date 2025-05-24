@@ -3,7 +3,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { AppWindow, ChefHat, ClipboardEdit, ArrowRight, Edit, Youtube, Music, BookOpenText, Brain, Link as LinkLucideIcon, Globe, Calculator } from 'lucide-react';
+import { AppWindow, ChefHat, ClipboardEdit, ArrowRight, Edit, Youtube, Music, BookOpenText, Brain, Link as LinkLucideIcon, Globe, Calculator, DraftingCompass } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -26,7 +26,7 @@ const apps = [
   },
   {
     title: "Calculator",
-    description: "A simple and elegant calculator for everyday arithmetic operations.",
+    description: "A versatile calculator with standard, scientific, and basic graphing modes.",
     href: "/calculator",
     icon: <Calculator className="h-8 w-8 mb-2 text-primary" />,
     imageSrc: "https://placehold.co/600x400.png",
@@ -48,6 +48,14 @@ const apps = [
     imageSrc: "https://placehold.co/600x400.png",
     imageHint: "writing document editor",
   },
+  {
+    title: "Drafting Board",
+    description: "A simple 2D drafting tool for creating basic architectural plans and diagrams.",
+    href: "/drafting-board",
+    icon: <DraftingCompass className="h-8 w-8 mb-2 text-primary" />,
+    imageSrc: "https://placehold.co/600x400.png",
+    imageHint: "architecture drawing blueprint",
+  },
   { 
     title: "Hangout Helper", 
     description: "Discover exciting hangout ideas with AI-powered suggestions, saved lists, and scavenger hunt generation.", 
@@ -66,7 +74,7 @@ const apps = [
   },
   {
     title: "Link Chat",
-    description: "Paste any web page link to fetch its HTML content, then chat with an AI about what's on the page.",
+    description: "Paste any web page link to attempt to fetch its HTML content, then chat with an AI about what's on the page.",
     href: "/link-chat",
     icon: <Globe className="h-8 w-8 mb-2 text-primary" />, 
     imageSrc: "https://placehold.co/600x400.png",
