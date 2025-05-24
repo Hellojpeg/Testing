@@ -10,6 +10,7 @@ import { chatWithYoutubeVideo, type ChatWithYoutubeVideoInput, type ChatWithYout
 import { YoutubeTranscript } from 'youtube-transcript';
 import { generateLessonPlan, type GenerateLessonPlanInput, type GenerateLessonPlanOutput } from '@/ai/flows/generate-lesson-plan-flow';
 import { generateStudyGuide, type GenerateStudyGuideInput, type GenerateStudyGuideOutput } from '@/ai/flows/generate-study-guide-flow';
+import { chatWithLinkContent, type ChatWithLinkContentInput, type ChatWithLinkContentOutput } from '@/ai/flows/chat-with-link-content-flow';
 
 export async function fetchHangoutSuggestionsAction(
   input: GenerateHangoutSuggestionsInput
@@ -137,3 +138,39 @@ export async function fetchStudyGuideAction(
     };
   }
 }
+
+// Actions for Link Chat App
+export async function fetchLinkContentAction(
+  url: string
+): Promise<{ content?: string; title?: string; error?: string }> {
+  try {
+    const response = await fetch(url, { headers: { 'User-Agent': 'LinkChatApp/1.0' } }); // Basic User-Agent
+    if (!response.ok) {
+      return { error: `Failed to fetch URL: ${response.status} ${response.statusText}` };
+    }
+    const htmlContent = await response.text();
+    
+    // Basic title extraction (can be improved)
+    let titleMatch = htmlContent.match(/<title[^>]*>([^<]+)<\/title>/i);
+    const title = titleMatch && titleMatch[1] ? titleMatch[1].trim() : url;
+
+    return { content: htmlContent, title: title };
+  } catch (error: any) {
+    console.error(`Error fetching content from ${url}:`, error);
+    return { error: `Could not fetch content from the URL. Error: ${error.message}` };
+  }
+}
+
+export async function fetchLinkChatResponseAction(
+  input: ChatWithLinkContentInput
+): Promise<ChatWithLinkContentOutput> {
+  try {
+    const result = await chatWithLinkContent(input);
+    return result;
+  } catch (error) {
+    console.error('Error fetching Link Chat response:', error);
+    return { aiResponse: "Sorry, an error occurred while trying to get a response for this link. Please try again." };
+  }
+}
+
+    
