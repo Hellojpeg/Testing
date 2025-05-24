@@ -20,8 +20,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = { // This is now valid
-  title: 'Hangout Helper',
-  description: 'Get smart suggestions for your next hangout!',
+  title: 'Beautiful Ideas',
+  description: 'A collection of tools for beautiful ideas.',
 };
 
 export default function RootLayout({

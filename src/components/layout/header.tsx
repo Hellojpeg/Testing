@@ -2,7 +2,7 @@
 'use client';
 
 import Link from 'next/link';
-import { PartyPopper, Home, Compass, ChefHat, ClipboardEdit, Menu, Edit, Youtube as YoutubeIcon, BookOpenText, Calculator, Settings2 } from 'lucide-react';
+import { Lightbulb, Home, Compass, ChefHat, ClipboardEdit, Menu, Edit, Youtube as YoutubeIcon, BookOpenText, Calculator, Settings2 } from 'lucide-react';
 import * as React from 'react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -27,8 +27,8 @@ export function Header() {
     <header className="bg-card border-b border-border shadow-sm sticky top-0 z-50">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-3 group">
-          <PartyPopper className="h-8 w-8 text-primary group-hover:animate-pulse" />
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-primary tracking-tight">Hangout Helper</h1>
+          <Lightbulb className="h-8 w-8 text-primary group-hover:animate-pulse" />
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-primary tracking-tight">Beautiful Ideas</h1>
         </Link>
 
         {/* Desktop Navigation - Always Hidden based on previous request */}
