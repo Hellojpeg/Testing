@@ -9,3 +9,4 @@ import '@/ai/flows/generate-pmd-flow.ts';
 import '@/ai/flows/generate-pmd-from-description-flow.ts';
 import '@/ai/flows/chat-with-youtube-video-flow.ts';
 import '@/ai/flows/generate-lesson-plan-flow.ts';
+import '@/ai/flows/generate-study-guide-flow.ts';

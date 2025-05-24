@@ -9,6 +9,7 @@ import { generatePmdFromDescription, type GeneratePmdFromDescriptionInput, type 
 import { chatWithYoutubeVideo, type ChatWithYoutubeVideoInput, type ChatWithYoutubeVideoOutput } from '@/ai/flows/chat-with-youtube-video-flow';
 import { YoutubeTranscript } from 'youtube-transcript';
 import { generateLessonPlan, type GenerateLessonPlanInput, type GenerateLessonPlanOutput } from '@/ai/flows/generate-lesson-plan-flow';
+import { generateStudyGuide, type GenerateStudyGuideInput, type GenerateStudyGuideOutput } from '@/ai/flows/generate-study-guide-flow';
 
 export async function fetchHangoutSuggestionsAction(
   input: GenerateHangoutSuggestionsInput
@@ -116,5 +117,23 @@ export async function fetchLessonPlanAction(
     // Provide a more informative error message if possible
     const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
     return { lessonPlanMarkdown: `# Error Generating Lesson Plan\n\nAn error occurred: ${errorMessage}\n\nPlease try again. If the problem persists, the content or request might be too complex for the AI model.` };
+  }
+}
+
+export async function fetchStudyGuideAction(
+  input: GenerateStudyGuideInput
+): Promise<GenerateStudyGuideOutput> {
+  try {
+    const result = await generateStudyGuide(input);
+    return result;
+  } catch (error) {
+    console.error('Error generating study guide:', error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+    return { 
+      studyGuideMarkdown: `# Error Generating Study Guide\n\nAn error occurred: ${errorMessage}\n\nPlease try again. If the problem persists, the content or request might be too complex for the AI model.`,
+      flashcards: [],
+      definitions: [],
+      practiceQuestions: []
+    };
   }
 }
