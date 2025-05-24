@@ -3,7 +3,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { AppWindow, ChefHat, ClipboardEdit, ArrowRight, Edit, Youtube, Music, BookOpenText, Brain, Link as LinkLucideIcon, Globe, Calculator, DraftingCompass, Settings2 } from 'lucide-react';
+import { AppWindow, ChefHat, ClipboardEdit, ArrowRight, Edit, Youtube, BookOpenText, Calculator } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -44,7 +44,7 @@ const apps = [
   { 
     title: "Hangout Helper", 
     description: "Discover exciting hangout ideas with AI-powered suggestions, saved lists, and scavenger hunt generation.", 
-    href: "/",
+    href: "/", // This is the Home page
     icon: <AppWindow className="h-8 w-8 mb-2 text-primary" />,
     imageSrc: "https://placehold.co/600x400.png",
     imageHint: "friends fun",
@@ -58,22 +58,6 @@ const apps = [
     imageHint: "education planning teaching",
   },
   {
-    title: "Link Chat",
-    description: "Paste any web page link to attempt to fetch its HTML content, then chat with an AI about what's on the page.",
-    href: "/link-chat",
-    icon: <Globe className="h-8 w-8 mb-2 text-primary" />, 
-    imageSrc: "https://placehold.co/600x400.png",
-    imageHint: "web browsing chat",
-  },
-  {
-    title: "Study Guide Creator",
-    description: "Turn any text content into a deep study guide, complete with flashcards, definitions, and practice questions.",
-    href: "/study-guide-creator",
-    icon: <Brain className="h-8 w-8 mb-2 text-primary" />,
-    imageSrc: "https://placehold.co/600x400.png",
-    imageHint: "learning study books",
-  },
-  {
     title: "YouTube Video Chat",
     description: "Enter a YouTube video link to fetch its transcript and chat with an AI about its content.",
     href: "/youtube-chat",
@@ -81,23 +65,6 @@ const apps = [
     imageSrc: "https://placehold.co/600x400.png",
     imageHint: "video chat play",
   },
-  // Moved to /development page:
-  // {
-  //   title: "Chromatic Tuner",
-  //   description: "Tune your instruments with a chromatic tuner and generate reference tones. Uses your device's microphone.",
-  //   href: "/chromatic-tuner",
-  //   icon: <Music className="h-8 w-8 mb-2 text-primary" />,
-  //   imageSrc: "https://placehold.co/600x400.png",
-  //   imageHint: "music guitar tuning",
-  // },
-  // {
-  //   title: "Drafting Board",
-  //   description: "A simple 2D drafting tool for creating basic architectural plans and diagrams.",
-  //   href: "/drafting-board",
-  //   icon: <DraftingCompass className="h-8 w-8 mb-2 text-primary" />,
-  //   imageSrc: "https://placehold.co/600x400.png",
-  //   imageHint: "architecture drawing blueprint",
-  // },
 ];
 
 export default function OtherAppsPage() {

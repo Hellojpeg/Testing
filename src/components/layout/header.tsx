@@ -2,7 +2,7 @@
 'use client';
 
 import Link from 'next/link';
-import { PartyPopper, Home, Compass, ChefHat, ClipboardEdit, Menu, Edit, Youtube as YoutubeIcon, Music, BookOpenText, Brain, Link as LinkLucideIcon, Calculator, DraftingCompass, Settings2 } from 'lucide-react';
+import { PartyPopper, Home, Compass, ChefHat, ClipboardEdit, Menu, Edit, Youtube as YoutubeIcon, BookOpenText, Calculator, Settings2 } from 'lucide-react';
 import * as React from 'react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -17,12 +17,8 @@ export function Header() {
     { href: "/project-maker", label: "Project Maker", icon: <ClipboardEdit className="h-5 w-5" /> },
     { href: "/deal-out", label: "Deal Out Editor", icon: <Edit className="h-5 w-5" /> },
     { href: "/youtube-chat", label: "YouTube Chat", icon: <YoutubeIcon className="h-5 w-5" /> },
-    { href: "/link-chat", label: "Link Chat", icon: <LinkLucideIcon className="h-5 w-5" /> },
-    { href: "/chromatic-tuner", label: "Chromatic Tuner", icon: <Music className="h-5 w-5" /> },
     { href: "/lesson-plan-maker", label: "Lesson Plan Maker", icon: <BookOpenText className="h-5 w-5" /> },
-    { href: "/study-guide-creator", label: "Study Guide Creator", icon: <Brain className="h-5 w-5" /> },
     { href: "/calculator", label: "Calculator", icon: <Calculator className="h-5 w-5" /> },
-    { href: "/drafting-board", label: "Drafting Board", icon: <DraftingCompass className="h-5 w-5" /> },
     { href: "/development", label: "In Development", icon: <Settings2 className="h-5 w-5" /> },
     { href: "/other-apps", label: "All Apps", icon: <Compass className="h-5 w-5" /> },
   ];

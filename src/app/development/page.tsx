@@ -3,7 +3,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Settings2, ArrowRight, DraftingCompass, Music } from 'lucide-react';
+import { Settings2, ArrowRight, DraftingCompass, Music, Brain, Link as LinkLucideIcon } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -24,7 +24,22 @@ const developmentApps = [
     imageSrc: "https://placehold.co/600x400.png",
     imageHint: "music guitar tuning",
   },
-  // Add other in-development apps here
+  {
+    title: "Study Guide Creator",
+    description: "Turn any text content into a deep study guide, complete with flashcards, definitions, and practice questions. Still refining AI output and UI.",
+    href: "/study-guide-creator",
+    icon: <Brain className="h-8 w-8 mb-2 text-primary" />,
+    imageSrc: "https://placehold.co/600x400.png",
+    imageHint: "learning study books",
+  },
+  {
+    title: "Link Chat",
+    description: "Paste any web page link to attempt to fetch its HTML content, then chat with an AI about what's on the page. Content fetching is basic and experimental.",
+    href: "/link-chat",
+    icon: <LinkLucideIcon className="h-8 w-8 mb-2 text-primary" />,
+    imageSrc: "https://placehold.co/600x400.png",
+    imageHint: "web browsing chat",
+  },
 ];
 
 export default function DevelopmentPage() {
