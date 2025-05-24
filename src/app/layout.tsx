@@ -8,6 +8,8 @@ import './globals.css';
 // Toaster itself is not directly imported, ClientToaster will handle it
 import { Header } from '@/components/layout/header';
 import { ClientToaster } from '@/components/client-toaster'; // Import the new component
+import { AuthProvider } from '@/contexts/AuthContext';
+
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -19,7 +21,7 @@ const geistMono = Geist_Mono({
   subsets: ['latin'],
 });
 
-export const metadata: Metadata = { // This is now valid
+export const metadata: Metadata = { 
   title: 'Beautiful Ideas',
   description: 'A collection of tools for beautiful ideas.',
 };
@@ -34,11 +36,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}>
-        <Header /> {/* Header is a Client Component, which is fine */}
-        <main className="flex-grow container mx-auto px-4 py-8">
-          {children}
-        </main>
-        <ClientToaster /> {/* Use the client-side wrapper for Toaster */}
+        <AuthProvider>
+          <Header /> 
+          <main className="flex-grow container mx-auto px-4 py-8">
+            {children}
+          </main>
+          <ClientToaster /> 
+        </AuthProvider>
       </body>
     </html>
   );
