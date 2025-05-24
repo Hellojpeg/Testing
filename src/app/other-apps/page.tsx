@@ -3,7 +3,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { AppWindow, ChefHat, ClipboardEdit, ArrowRight, Edit, Youtube, Music } from 'lucide-react';
+import { AppWindow, ChefHat, ClipboardEdit, ArrowRight, Edit, Youtube, Music, BookOpenText } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -44,9 +44,17 @@ const apps = [
     title: "Hangout Helper", 
     description: "Discover exciting hangout ideas with AI-powered suggestions, saved lists, and scavenger hunt generation.", 
     href: "/",
-    icon: <AppWindow className="h-8 w-8 mb-2 text-primary" />,
+    icon: <AppWindow className="h-8 w-8 mb-2 text-primary" />, // Default icon for main app
     imageSrc: "https://placehold.co/600x400.png",
     imageHint: "friends fun",
+  },
+  {
+    title: "Lesson Plan Maker",
+    description: "Craft detailed lesson plans using an AI assistant aware of various educational frameworks and age-specific needs, with biblical integration.",
+    href: "/lesson-plan-maker",
+    icon: <BookOpenText className="h-8 w-8 mb-2 text-primary" />,
+    imageSrc: "https://placehold.co/600x400.png",
+    imageHint: "education planning teaching",
   },
   {
     title: "YouTube Video Chat",
@@ -103,4 +111,3 @@ export default function OtherAppsPage() {
     </div>
   );
 }
-

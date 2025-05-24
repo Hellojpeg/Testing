@@ -8,6 +8,7 @@ import { generatePmd, type GeneratePmdInput as GenerateStructuredPmdInput, type 
 import { generatePmdFromDescription, type GeneratePmdFromDescriptionInput, type GeneratePmdFromDescriptionOutput } from '@/ai/flows/generate-pmd-from-description-flow';
 import { chatWithYoutubeVideo, type ChatWithYoutubeVideoInput, type ChatWithYoutubeVideoOutput } from '@/ai/flows/chat-with-youtube-video-flow';
 import { YoutubeTranscript } from 'youtube-transcript';
+import { generateLessonPlan, type GenerateLessonPlanInput, type GenerateLessonPlanOutput } from '@/ai/flows/generate-lesson-plan-flow';
 
 export async function fetchHangoutSuggestionsAction(
   input: GenerateHangoutSuggestionsInput
@@ -101,5 +102,19 @@ export async function fetchYoutubeChatResponseAction(
   } catch (error) {
     console.error('Error fetching YouTube chat response:', error);
     return { aiResponse: "Sorry, an error occurred while trying to get a response. Please try again." };
+  }
+}
+
+export async function fetchLessonPlanAction(
+  input: GenerateLessonPlanInput
+): Promise<GenerateLessonPlanOutput> {
+  try {
+    const result = await generateLessonPlan(input);
+    return result;
+  } catch (error) {
+    console.error('Error fetching lesson plan:', error);
+    // Provide a more informative error message if possible
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+    return { lessonPlanMarkdown: `# Error Generating Lesson Plan\n\nAn error occurred: ${errorMessage}\n\nPlease try again. If the problem persists, the content or request might be too complex for the AI model.` };
   }
 }
