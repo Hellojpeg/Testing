@@ -2,7 +2,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Lightbulb, Home, Compass, ChefHat, ClipboardEdit, Menu, Edit, Youtube as YoutubeIcon, BookOpenText, Calculator, Settings2 } from 'lucide-react';
+import { Lightbulb, Home, Compass, ChefHat, ClipboardEdit, Menu, Edit, Youtube as YoutubeIcon, BookOpenText, Calculator, Settings2, LightbulbIcon as HangoutIcon } from 'lucide-react';
 import * as React from 'react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -13,6 +13,7 @@ export function Header() {
 
   const navLinks = [
     { href: "/", label: "Home", icon: <Home className="h-5 w-5" /> },
+    { href: "/hangout-helper", label: "Hangout Helper", icon: <HangoutIcon className="h-5 w-5" /> },
     { href: "/meal-creator", label: "Meal Creator", icon: <ChefHat className="h-5 w-5" /> },
     { href: "/project-maker", label: "Project Maker", icon: <ClipboardEdit className="h-5 w-5" /> },
     { href: "/deal-out", label: "Deal Out Editor", icon: <Edit className="h-5 w-5" /> },
@@ -31,7 +32,7 @@ export function Header() {
           <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-primary tracking-tight">Beautiful Ideas</h1>
         </Link>
 
-        {/* Desktop Navigation - Always Hidden based on previous request */}
+        {/* Desktop Navigation - Always Hidden */}
         <nav className="hidden items-center gap-1 md:gap-2 lg:gap-4">
           {/* Desktop links can be added here if needed in the future */}
         </nav>
@@ -72,3 +73,5 @@ export function Header() {
     </header>
   );
 }
+
+    

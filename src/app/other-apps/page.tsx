@@ -3,7 +3,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { AppWindow, ChefHat, ClipboardEdit, ArrowRight, Edit, Youtube, BookOpenText, Calculator } from 'lucide-react';
+import { AppWindow, ChefHat, ClipboardEdit, ArrowRight, Edit, Youtube, BookOpenText, Calculator, LightbulbIcon } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -44,8 +44,8 @@ const apps = [
   { 
     title: "Hangout Helper", 
     description: "Discover exciting hangout ideas with AI-powered suggestions, saved lists, and scavenger hunt generation.", 
-    href: "/", // This is the Home page
-    icon: <AppWindow className="h-8 w-8 mb-2 text-primary" />,
+    href: "/hangout-helper", // Updated href
+    icon: <LightbulbIcon className="h-8 w-8 mb-2 text-primary" />, // Changed icon to match landing page
     imageSrc: "https://placehold.co/600x400.png",
     imageHint: "friends fun",
   },
@@ -77,7 +77,7 @@ export default function OtherAppsPage() {
         </h1>
         <p className="text-muted-foreground max-w-xl mx-auto">
           Explore the suite of AI-powered tools designed to help you with various tasks. 
-          Some experimental apps are listed under "In Development".
+          Experimental apps are listed under "In Development".
         </p>
       </section>
 
@@ -113,3 +113,5 @@ export default function OtherAppsPage() {
     </div>
   );
 }
+
+    
