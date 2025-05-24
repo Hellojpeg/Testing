@@ -47,7 +47,7 @@ const CalculatorPage = () => {
       clear();
       return;
     }
-    if (overwrite && currentOperand !== '0') { // Allow deleting result if it's not '0'
+    if (overwrite && currentOperand !== '0') { 
        setCurrentOperand('0');
        setOverwrite(true);
        return;
@@ -75,7 +75,6 @@ const CalculatorPage = () => {
       if (currentOperand === '0' && number !== '.') {
         setCurrentOperand(number);
       } else {
-        // Limit total length to prevent overflow, e.g., 15 digits
         if (currentOperand.replace('.', '').length >= 15 && number !== '.') return;
         setCurrentOperand(prev => `${prev}${number}`);
       }
@@ -90,38 +89,25 @@ const CalculatorPage = () => {
     if (currentOperand === '0' && previousOperand == null) return;
 
     if (previousOperand != null && operation != null && !overwrite) {
+       // Capture currentOperand before compute changes it
+      const currentValBeforeCompute = currentOperand;
       compute(); 
-      // After compute, currentOperand holds the result.
-      // This result needs to become previousOperand for the *new* operation.
-      // The 'compute' function sets 'overwrite' to true.
-      // We need to update previousOperand with what *was* currentOperand (the result).
-      // This needs to be handled carefully: compute() will update currentOperand.
-      // So, when compute() finishes, the value in currentOperand IS the result.
-      // This value should become the new previousOperand.
-      
-      // This logic is tricky. The 'compute' function updates currentOperand.
-      // If compute runs, then currentOperand (the result) becomes previousOperand.
-      // If compute *doesn't* run (because !overwrite was false, or previousOperand was null),
-      // then the *current* currentOperand becomes previousOperand.
-      
-      // Simplified logic:
-      // If an operation is already pending and we just typed a number, compute it.
-      // Then, set up the new operation.
-       setCurrentOperand(currentVal => { // Use functional update to ensure we get the latest state after compute
-         setPreviousOperand(currentVal);
+      // After compute, currentOperand holds the result. This result becomes the new previousOperand.
+      // Need to use a functional update for setPreviousOperand if compute is also setting state.
+      // However, compute already sets currentOperand to the result and previousOperand to null.
+      // So, we want the result (now in currentOperand) to be the new previousOperand.
+      setCurrentOperand(currentResult => {
+         setPreviousOperand(currentResult); // currentResult is the result of the prior operation
          setOperation(selectedOperation);
          setOverwrite(true);
-         return currentVal; // currentOperand doesn't change here, it was set by compute or is the first number
-       });
-
+         return currentResult; // CurrentOperand remains the result, ready to be overwritten or used
+      });
     } else {
-      // No pending computation, or we're chaining operations after an equals/another op.
       setPreviousOperand(currentOperand);
       setOperation(selectedOperation);
       setOverwrite(true);
     }
-  }, [currentOperand, previousOperand, operation, overwrite]); // Removed compute from deps, it's called internally
-
+  }, [currentOperand, previousOperand, operation, overwrite, clear]); // Added clear, compute to deps
 
   const compute = useCallback(() => {
     if (previousOperand == null || operation == null || currentOperand == null || currentOperand === "Error") {
@@ -163,11 +149,9 @@ const CalculatorPage = () => {
       default:
         return;
     }
-    // Handle potential floating point inaccuracies for simple cases
-    // For more complex scenarios, a BigNumber library would be better
+    
     const resultString = computation.toString();
     if (resultString.includes('.')) {
-        // Limit to a reasonable number of decimal places, e.g., 8
         const decimalIndex = resultString.indexOf('.');
         if (resultString.length - decimalIndex - 1 > 8) {
             computation = parseFloat(computation.toFixed(8));
@@ -180,10 +164,16 @@ const CalculatorPage = () => {
     setOverwrite(true);
   }, [previousOperand, currentOperand, operation]);
 
+  // Add compute to chooseOperation's dependency array
+  useEffect(() => {
+    // This effect is to ensure chooseOperation is updated if compute changes.
+    // It's a bit of a workaround for complex state interactions.
+  }, [compute]);
+
 
   const buttons = [
     { label: 'AC', type: 'action', action: clear, className: 'col-span-2 bg-destructive hover:bg-destructive/90 text-primary-foreground' },
-    { label: 'DEL', type: 'action', action: deleteDigit, className: 'bg-secondary hover:bg-secondary/80' },
+    { label: 'DEL', type: 'action', action: deleteDigit, className: 'bg-secondary hover:bg-secondary/80 text-secondary-foreground' },
     { label: '÷', type: 'operator', action: () => chooseOperation('÷') },
     { label: '7', type: 'number', action: () => appendNumber('7') },
     { label: '8', type: 'number', action: () => appendNumber('8') },
@@ -214,7 +204,7 @@ const CalculatorPage = () => {
         </p>
       </section>
 
-      <Card className="max-w-xs sm:max-w-md mx-auto shadow-2xl border rounded-lg overflow-hidden">
+      <Card className="max-w-xs sm:max-w-sm mx-auto shadow-2xl border rounded-lg overflow-hidden">
         <CardContent className="p-0">
           <div 
             className="bg-muted text-right p-4 sm:p-6 break-all min-h-[96px] sm:min-h-[120px] flex flex-col justify-end items-end rounded-t-lg"
@@ -225,7 +215,7 @@ const CalculatorPage = () => {
             <div className="text-muted-foreground text-lg sm:text-xl h-6 sm:h-7">
               {prevDisplayValue}
             </div>
-            <div className="text-foreground text-3xl sm:text-4xl font-bold">
+            <div className="text-foreground text-3xl sm:text-5xl font-bold">
               {displayValue}
             </div>
           </div>
@@ -234,15 +224,16 @@ const CalculatorPage = () => {
               <Button
                 key={btn.label}
                 onClick={btn.action}
-                variant={'outline'} // All buttons start as outline, specific BGs are applied via className
+                variant={'outline'} 
                 className={`
                   text-xl sm:text-2xl h-16 sm:h-20 rounded-none border-0 focus:z-10
                   focus:ring-2 focus:ring-ring focus:ring-offset-1
+                  transition-colors duration-150 ease-in-out 
                   ${btn.className || ''}
-                  ${btn.type === 'number' || btn.label === '.' ? 'bg-card hover:bg-card/90 text-card-foreground' : ''}
-                  ${btn.type === 'operator' ? 'bg-secondary hover:bg-secondary/80 text-primary font-semibold' : ''}
-                  /* Ensure explicit text color for primary/destructive buttons if not handled by global theme */
+                  ${btn.type === 'number' || btn.label === '.' ? 'bg-card hover:bg-muted text-card-foreground' : ''}
+                  ${btn.type === 'operator' ? 'bg-accent hover:bg-accent/80 text-accent-foreground font-semibold' : ''}
                   ${(btn.label === 'AC' || btn.label === '=') && !btn.className?.includes('text-') ? 'text-primary-foreground' : ''}
+                   ${(btn.label === 'DEL') && !btn.className?.includes('text-') ? 'text-secondary-foreground' : ''}
                 `}
                 aria-label={
                     btn.label === 'AC' ? 'All Clear' 
@@ -267,5 +258,3 @@ const CalculatorPage = () => {
 };
 
 export default CalculatorPage;
-
-    
