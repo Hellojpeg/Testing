@@ -20,7 +20,7 @@ if (typeof window !== 'undefined') {
     'NEXT_PUBLIC_FIREBASE_PROJECT_ID',
     'NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID',
     'NEXT_PUBLIC_FIREBASE_APP_ID',
-    'NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET',
+    'NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET', // Often optional but good to check
   ];
   let allVarsPresent = true;
   let criticalVarMissing = false;
