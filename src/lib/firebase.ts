@@ -71,7 +71,7 @@ if (
     } catch (e) {
       console.error("Firebase initialization failed during initializeApp:", e);
       // @ts-ignore
-      app = null; // Ensure app is null if initialization fails
+      app = null; 
     }
   } else {
     app = getApp();
@@ -84,7 +84,7 @@ if (
     } catch (e) {
        console.error("Firebase getAuth failed:", e);
        // @ts-ignore
-       auth = null; // Ensure auth is null if getAuth fails
+       auth = null; 
     }
   } else {
      console.error("Firebase app was not initialized successfully (app object is null/undefined), cannot getAuth.");
