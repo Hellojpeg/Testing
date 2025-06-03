@@ -12,7 +12,7 @@ const firebaseConfig = {
 };
 
 // Enhanced diagnostic log - This will log in the BROWSER console
-if (typeof window !== 'undefined') { 
+if (typeof window !== 'undefined') {
   console.log('--- Firebase Initialization Diagnostics (Client-Side) ---');
   const expectedVars = [
     'NEXT_PUBLIC_FIREBASE_API_KEY',
@@ -20,12 +20,12 @@ if (typeof window !== 'undefined') {
     'NEXT_PUBLIC_FIREBASE_PROJECT_ID',
     'NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID',
     'NEXT_PUBLIC_FIREBASE_APP_ID',
-    'NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET', // Added for completeness
+    'NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET',
   ];
   let allVarsPresent = true;
   let criticalVarMissing = false;
 
-  console.log('Reading Firebase config from process.env:');
+  console.log('Reading Firebase config from process.env (Next.js automatically exposes NEXT_PUBLIC_ vars to the browser):');
   expectedVars.forEach(varName => {
     const value = process.env[varName];
     if (value && value.trim() !== '') {
@@ -40,16 +40,16 @@ if (typeof window !== 'undefined') {
   });
 
   if (allVarsPresent) {
-    console.log('All expected Firebase environment variables appear to be loaded by Next.js.');
+    console.log('All expected Firebase environment variables appear to be loaded by Next.js into the browser environment.');
     console.log('If you are still seeing "auth/invalid-api-key":');
-    console.log('1. Double-check that the API_KEY value in .env.local is an EXACT MATCH from your Firebase project console.');
+    console.log('1. Double-check that the API_KEY value in your .env.local file is an EXACT MATCH from your Firebase project console.');
     console.log('2. Ensure you have FULLY RESTARTED your Next.js development server (e.g., `npm run dev`) after creating/modifying .env.local.');
   } else {
-    console.error('One or more Firebase environment variables are missing or empty. Firebase initialization WILL FAIL.');
+    console.error('One or more Firebase environment variables are missing or empty in the browser environment. Firebase initialization WILL LIKELY FAIL.');
     if (criticalVarMissing) {
       console.error('Specifically, NEXT_PUBLIC_FIREBASE_API_KEY is missing or empty. This is essential.');
     }
-    console.error('Please ensure your .env.local file is correctly set up in the project root and you have restarted your development server.');
+    console.error('Please ensure your .env.local file is correctly set up in the project root with all NEXT_PUBLIC_ prefixed variables, and that you have restarted your development server.');
   }
   console.log('--- End Firebase Diagnostics ---');
 }
@@ -87,15 +87,15 @@ if (
        auth = null; // Ensure auth is null if getAuth fails
     }
   } else {
-     console.error("Firebase app was not initialized successfully, cannot getAuth.");
+     console.error("Firebase app was not initialized successfully (app object is null/undefined), cannot getAuth.");
      // @ts-ignore
      auth = null;
   }
 
 } else {
-  console.error("Firebase configuration is missing critical environment variables. Firebase SDK will not be initialized.");
+  console.error("Firebase configuration is missing critical environment variables (checked before initializeApp). Firebase SDK will not be initialized.");
   // @ts-ignore
-  app = null; 
+  app = null;
   // @ts-ignore
   auth = null;
 }
