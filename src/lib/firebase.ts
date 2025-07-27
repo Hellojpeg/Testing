@@ -2,6 +2,7 @@
 import { initializeApp, getApps, getApp, type FirebaseApp } from 'firebase/app';
 import { getAuth, type Auth } from 'firebase/auth';
 
+// Your web app's Firebase configuration, directly provided.
 const firebaseConfig = {
   apiKey: "AIzaSyAhu7ZWWNpsPkoGdQV75lDiZvVy6dHdEWM",
   authDomain: "hangout-helper-m3ubd.firebaseapp.com",
@@ -11,51 +12,19 @@ const firebaseConfig = {
   appId: "1:755444207735:web:3e1e2a9fff14567573f672"
 };
 
-
 let app: FirebaseApp;
-let auth: Auth;
 
-// Check if all critical environment variables are present before initializing
-if (
-  firebaseConfig.apiKey &&
-  firebaseConfig.authDomain &&
-  firebaseConfig.projectId &&
-  firebaseConfig.appId
-) {
-  if (!getApps().length) {
-    try {
-      app = initializeApp(firebaseConfig);
-    } catch (e) {
-      console.error("Firebase initialization failed during initializeApp:", e);
-      // @ts-ignore
-      app = null; 
-    }
-  } else {
-    app = getApp();
-  }
-
-  // @ts-ignore
-  if (app) {
-    try {
-      auth = getAuth(app);
-    } catch (e) {
-       console.error("Firebase getAuth failed:", e);
-       // @ts-ignore
-       auth = null; 
-    }
-  } else {
-     console.error("Firebase app was not initialized successfully (app object is null/undefined), cannot getAuth.");
-     // @ts-ignore
-     auth = null;
-  }
-
+// Initialize Firebase
+// This simplified approach checks if an app is already initialized,
+// otherwise it creates a new one. This is standard practice for Next.js.
+if (getApps().length === 0) {
+  app = initializeApp(firebaseConfig);
 } else {
-  console.error("Firebase configuration is missing critical values. Firebase SDK will not be initialized.");
-  // @ts-ignore
-  app = null;
-  // @ts-ignore
-  auth = null;
+  app = getApp();
 }
 
+// Get the Auth instance for the initialized app.
+const auth: Auth = getAuth(app);
 
+// Export the initialized app and auth instances for use in other parts of the application.
 export { app, auth };
