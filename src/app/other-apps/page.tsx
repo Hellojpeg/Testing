@@ -89,14 +89,15 @@ export default function OtherAppsPage() {
               <CardTitle className="text-2xl">{app.title}</CardTitle>
             </CardHeader>
             <CardContent className="flex-grow flex flex-col">
-              <Image
-                src={app.imageSrc}
-                alt={`Placeholder for ${app.title}`}
-                data-ai-hint={app.imageHint}
-                width={600}
-                height={400}
-                className="mb-4 rounded-md aspect-video object-cover"
-              />
+              <div className="relative aspect-video w-full overflow-hidden rounded-md mb-4">
+                <Image
+                  src={app.imageSrc}
+                  alt={`Placeholder for ${app.title}`}
+                  data-ai-hint={app.imageHint}
+                  fill
+                  className="object-cover"
+                />
+              </div>
               <CardDescription className="text-muted-foreground text-sm mb-4 flex-grow">
                 {app.description}
               </CardDescription>
@@ -113,5 +114,3 @@ export default function OtherAppsPage() {
     </div>
   );
 }
-
-    

@@ -148,9 +148,8 @@ export default function LandingPage() {
                     src={app.imageSrc}
                     alt={`Showcase for ${app.title}`}
                     data-ai-hint={app.imageHint}
-                    layout="fill"
-                    objectFit="cover"
-                    className="group-hover:scale-105 transition-transform duration-300"
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-300"
                   />
                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
                    <div className="absolute bottom-4 left-4 text-white">
@@ -209,4 +208,3 @@ export default function LandingPage() {
     </div>
   );
 }
-
