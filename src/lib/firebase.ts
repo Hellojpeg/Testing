@@ -1,6 +1,5 @@
 
 import { initializeApp, getApps, getApp, type FirebaseApp } from 'firebase/app';
-import { getAuth, type Auth } from 'firebase/auth';
 
 // Your web app's Firebase configuration is defined here.
 const firebaseConfig = {
@@ -12,9 +11,8 @@ const firebaseConfig = {
   appId: "1:755444207735:web:3e1e2a9fff14567573f672"
 };
 
-// Singleton pattern to ensure only one instance of Firebase is initialized.
+// Initialize Firebase App
 const app: FirebaseApp = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-const auth: Auth = getAuth(app);
 
-// Export the singleton instances.
-export { app, auth };
+// Export only the initialized app
+export { app };

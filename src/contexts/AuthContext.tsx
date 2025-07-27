@@ -10,9 +10,10 @@ import {
   type AuthError,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  signOut as firebaseSignOut
+  signOut as firebaseSignOut,
+  type Auth
 } from 'firebase/auth';
-import { auth as firebaseAuthInstance } from '@/lib/firebase'; // Use the initialized auth instance
+import { app } from '@/lib/firebase'; // Import the initialized app
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation'; // Use next/navigation for App Router
 
@@ -28,6 +29,9 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Get the Auth instance directly from the initialized app
+const auth: Auth = getAuth(app);
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -36,8 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
-    // onAuthStateChanged uses the singleton instance from firebase.ts
-    const unsubscribe = onAuthStateChanged(firebaseAuthInstance, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       setLoading(false);
     });
@@ -48,7 +51,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(true);
     setError(null);
     try {
-      const userCredential = await createUserWithEmailAndPassword(firebaseAuthInstance, email, pass);
+      const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
       setUser(userCredential.user);
       toast({ title: 'Signup Successful!', description: 'Welcome!' });
       router.push('/'); // Redirect to home after signup
@@ -68,7 +71,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(true);
     setError(null);
     try {
-      const userCredential = await signInWithEmailAndPassword(firebaseAuthInstance, email, pass);
+      const userCredential = await signInWithEmailAndPassword(auth, email, pass);
       setUser(userCredential.user);
       toast({ title: 'Login Successful!', description: 'Welcome back!' });
       router.push('/'); // Redirect to home after login
@@ -88,7 +91,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(true);
     setError(null);
     try {
-      await firebaseSignOut(firebaseAuthInstance);
+      await firebaseSignOut(auth);
       setUser(null);
       toast({ title: 'Logged Out', description: 'You have been successfully logged out.' });
       router.push('/login'); // Redirect to login after logout
