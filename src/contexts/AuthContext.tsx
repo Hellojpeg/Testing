@@ -29,9 +29,6 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Get the Auth instance directly from the initialized app
-const auth: Auth = getAuth(app);
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -40,6 +37,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
+    // Get the Auth instance here to ensure it only runs on the client
+    const auth: Auth = getAuth(app);
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       setLoading(false);
@@ -50,6 +49,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signUp = async (email: string, pass: string): Promise<User | null> => {
     setLoading(true);
     setError(null);
+    const auth: Auth = getAuth(app);
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
       setUser(userCredential.user);
@@ -70,6 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signIn = async (email: string, pass: string): Promise<User | null> => {
     setLoading(true);
     setError(null);
+    const auth: Auth = getAuth(app);
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, pass);
       setUser(userCredential.user);
@@ -90,6 +91,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = async () => {
     setLoading(true);
     setError(null);
+    const auth: Auth = getAuth(app);
     try {
       await firebaseSignOut(auth);
       setUser(null);
