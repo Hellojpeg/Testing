@@ -1,5 +1,5 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+import { getAuth, type Auth } from 'firebase/auth';
 
 // This is a public configuration and is safe to be exposed.
 // Security is enforced by Firebase Security Rules and App Check.
@@ -16,7 +16,9 @@ const firebaseConfig = {
 // Initialize Firebase App using a singleton pattern
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
-// Initialize Firebase Auth and export it
-const auth = getAuth(app);
+// Export a function to get the auth instance, ensuring it's only called client-side.
+export const getFirebaseAuth = (): Auth => {
+    return getAuth(app);
+}
 
-export { app, auth };
+export { app };
