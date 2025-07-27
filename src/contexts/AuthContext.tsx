@@ -15,7 +15,7 @@ import {
 } from 'firebase/auth';
 import { app } from '@/lib/firebase'; // Import the initialized app
 import { useToast } from '@/hooks/use-toast';
-import { useRouter } from 'next/navigation'; // Use next/navigation for App Router
+import { useRouter, usePathname, useSearchParams } from 'next/navigation'; // Use next/navigation for App Router
 
 interface AuthContextType {
   user: User | null;
@@ -35,6 +35,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     // Get the Auth instance here to ensure it only runs on the client
@@ -54,7 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
       setUser(userCredential.user);
       toast({ title: 'Signup Successful!', description: 'Welcome!' });
-      router.push('/'); // Redirect to home after signup
+      router.push('/dashboard'); // Redirect to dashboard after signup
       return userCredential.user;
     } catch (e) {
       const authError = e as AuthError;
@@ -75,7 +77,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const userCredential = await signInWithEmailAndPassword(auth, email, pass);
       setUser(userCredential.user);
       toast({ title: 'Login Successful!', description: 'Welcome back!' });
-      router.push('/'); // Redirect to home after login
+      
+      const redirectUrl = searchParams.get('redirect');
+      router.push(redirectUrl || '/dashboard'); // Redirect to intended page or dashboard
+
       return userCredential.user;
     } catch (e) {
       const authError = e as AuthError;

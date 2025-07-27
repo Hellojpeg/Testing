@@ -11,7 +11,7 @@ const firebaseConfig = {
   appId: "1:755444207735:web:3e1e2a9fff14567573f672"
 };
 
-// Initialize Firebase App
+// Initialize Firebase App in a way that is safe for both server and client rendering in Next.js
 const app: FirebaseApp = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
 // Export only the initialized app
