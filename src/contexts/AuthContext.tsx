@@ -8,12 +8,10 @@ import {
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword, 
   signOut, 
+  type Auth,
   type User 
 } from 'firebase/auth';
-import { app } from '@/lib/firebase'; // Correctly import the initialized app
-
-// Get the auth instance from the initialized app
-const auth = getAuth(app);
+import { app } from '@/lib/firebase'; // Import the initialized app
 
 interface AuthContextType {
   user: User | null;
@@ -38,9 +36,15 @@ export function useAuth() {
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [auth, setAuth] = useState<Auth | null>(null);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    // Get the Auth instance only on the client-side
+    // This ensures that the app is fully initialized.
+    const authInstance = getAuth(app);
+    setAuth(authInstance);
+
+    const unsubscribe = onAuthStateChanged(authInstance, (user) => {
       setUser(user);
       setLoading(false);
     });
@@ -49,14 +53,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
   
   const signup = (email: string, pass: string) => {
+    if (!auth) return Promise.reject(new Error("Auth not initialized"));
     return createUserWithEmailAndPassword(auth, email, pass);
   };
   
   const login = (email: string, pass: string) => {
+    if (!auth) return Promise.reject(new Error("Auth not initialized"));
     return signInWithEmailAndPassword(auth, email, pass);
   };
   
   const logout = () => {
+    if (!auth) return Promise.reject(new Error("Auth not initialized"));
     return signOut(auth);
   };
 
