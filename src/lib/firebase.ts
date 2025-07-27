@@ -2,12 +2,13 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  "projectId": "hangout-helper-m3ubd",
+  "appId": "1:755444207735:web:33d7eb81b2bd52b773f672",
+  "storageBucket": "hangout-helper-m3ubd.firebasestorage.app",
+  "apiKey": "AIzaSyAhu7ZWWNpsPkoGdQV75lDiZvVy6dHdEWM",
+  "authDomain": "hangout-helper-m3ubd.firebaseapp.com",
+  "measurementId": "",
+  "messagingSenderId": "755444207735"
 };
 
 // Initialize Firebase App
