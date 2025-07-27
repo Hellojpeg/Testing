@@ -38,11 +38,26 @@ export default function SignupPage() {
       toast({ title: 'Account Created!', description: "You've been successfully signed up." });
       router.push('/dashboard');
     } catch (error: any) {
-      toast({
-        title: 'Signup Failed',
-        description: error.message || 'An unexpected error occurred.',
-        variant: 'destructive',
-      });
+      if (error.code === 'auth/email-already-in-use') {
+        toast({
+          title: 'Email Already in Use',
+          description: (
+            <div>
+              An account with this email already exists.
+              <Button asChild variant="link" className="p-0 pl-1 h-auto">
+                <Link href="/login">Log in instead.</Link>
+              </Button>
+            </div>
+          ),
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: 'Signup Failed',
+          description: error.message || 'An unexpected error occurred.',
+          variant: 'destructive',
+        });
+      }
     } finally {
       setIsLoading(false);
     }
