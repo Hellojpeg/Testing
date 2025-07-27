@@ -12,6 +12,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { useToast } from '@/hooks/use-toast';
 import { Spinner } from '@/components/ui/spinner';
 import { LogIn } from 'lucide-react';
+import { FirebaseError } from 'firebase/app';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -28,10 +29,36 @@ export default function LoginPage() {
       await login(email, password);
       toast({ title: 'Success!', description: 'You are now logged in.' });
       router.push('/dashboard');
-    } catch (error: any) {
+    } catch (error) {
+      let title = 'Login Failed';
+      let description = 'An unexpected error occurred. Please try again.';
+
+      if (error instanceof FirebaseError) {
+        switch (error.code) {
+          case 'auth/user-not-found':
+          case 'auth/wrong-password':
+          case 'auth/invalid-credential':
+            title = 'Invalid Credentials';
+            description = 'The email or password you entered is incorrect. Please check your credentials and try again.';
+            break;
+          case 'auth/invalid-email':
+            title = 'Invalid Email';
+            description = 'The email address is not formatted correctly. Please check it and try again.';
+            break;
+          case 'auth/too-many-requests':
+            title = 'Too Many Attempts';
+            description = 'Access to this account has been temporarily disabled due to many failed login attempts. You can immediately restore it by resetting your password or you can try again later.';
+            break;
+          default:
+            // Use the default generic message for other Firebase errors
+            description = error.message;
+            break;
+        }
+      }
+      
       toast({
-        title: 'Login Failed',
-        description: error.message || 'An unexpected error occurred.',
+        title: title,
+        description: description,
         variant: 'destructive',
       });
     } finally {
