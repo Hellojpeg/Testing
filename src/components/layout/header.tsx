@@ -5,15 +5,30 @@ import Link from 'next/link';
 import { 
   Lightbulb, Home, Compass, ChefHat, ClipboardEdit, Menu, Edit, Youtube as YoutubeIcon, 
   BookOpenText, Calculator, Settings2, LightbulbIcon as HangoutIcon, DraftingCompass, Music, Brain, 
-  Link as LinkLucideIcon
+  Link as LinkLucideIcon, User, LogOut, LogIn
 } from 'lucide-react';
 import * as React from 'react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from '@/components/ui/sheet';
+import { useAuth } from '@/contexts/AuthContext';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { useRouter } from 'next/navigation';
 
 export function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { user, logout } = useAuth();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      router.push('/');
+    } catch (error) {
+      console.error('Logout failed', error);
+    }
+  };
 
   const mainNavLinks = [
     { href: "/", label: "Home", icon: <Home className="h-5 w-5" /> },
@@ -34,6 +49,11 @@ export function Header() {
 
   const allNavLinks = [...mainNavLinks, ...secondaryNavLinks];
 
+  const getInitials = (email: string | null) => {
+    if (!email) return 'U';
+    return email.substring(0, 2).toUpperCase();
+  };
+
   return (
     <header className="bg-card border-b border-border shadow-sm sticky top-0 z-50">
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
@@ -43,6 +63,48 @@ export function Header() {
         </Link>
 
         <div className="flex items-center gap-2">
+          {user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                  <Avatar className="h-9 w-9">
+                    <AvatarImage src={user.photoURL || undefined} alt="User avatar" />
+                    <AvatarFallback>{getInitials(user.email)}</AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="end" forceMount>
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium leading-none">My Account</p>
+                    <p className="text-xs leading-none text-muted-foreground">
+                      {user.email}
+                    </p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => router.push('/dashboard')}>
+                  <User className="mr-2 h-4 w-4" />
+                  <span>Dashboard</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Log out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+             <div className="hidden sm:flex items-center gap-2">
+                <Button asChild variant="ghost">
+                    <Link href="/login">Log In</Link>
+                </Button>
+                <Button asChild>
+                    <Link href="/signup">Sign Up</Link>
+                </Button>
+             </div>
+          )}
+
           <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon">
@@ -56,6 +118,23 @@ export function Header() {
               </SheetHeader>
               <div className="p-6 pt-2">
                 <nav className="flex flex-col gap-1">
+                  {!user && (
+                    <>
+                      <SheetClose asChild>
+                        <Link href="/login" className="flex items-center gap-3 py-3 px-2 text-lg font-medium text-foreground hover:text-primary hover:bg-accent rounded-md transition-colors">
+                          <LogIn className="h-5 w-5 text-primary/80" />
+                          Login
+                        </Link>
+                      </SheetClose>
+                       <SheetClose asChild>
+                        <Link href="/signup" className="flex items-center gap-3 py-3 px-2 text-lg font-medium text-foreground hover:text-primary hover:bg-accent rounded-md transition-colors">
+                          <User className="h-5 w-5 text-primary/80" />
+                          Sign Up
+                        </Link>
+                      </SheetClose>
+                      <Separator className="my-2" />
+                    </>
+                  )}
                   {allNavLinks.sort((a,b) => a.label.localeCompare(b.label)).map((link) => (
                     <SheetClose key={link.href} asChild>
                       <Link
