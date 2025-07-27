@@ -12,16 +12,9 @@ const firebaseConfig = {
   appId: "1:755444207735:web:3e1e2a9fff14567573f672"
 };
 
-let app: FirebaseApp;
-
 // Initialize Firebase
-// This simplified approach checks if an app is already initialized,
-// otherwise it creates a new one. This is standard practice for Next.js.
-if (getApps().length === 0) {
-  app = initializeApp(firebaseConfig);
-} else {
-  app = getApp();
-}
+// A robust way to initialize Firebase in a Next.js environment.
+const app: FirebaseApp = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
 // Get the Auth instance for the initialized app.
 const auth: Auth = getAuth(app);
