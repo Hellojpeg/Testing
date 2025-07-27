@@ -12,14 +12,9 @@ const firebaseConfig = {
   appId: "1:755444207735:web:3e1e2a9fff14567573f672"
 };
 
-// A function to initialize Firebase and get the app instance.
-// This ensures that we don't try to initialize the app more than once.
-const getFirebaseApp = (): FirebaseApp => {
-  return !getApps().length ? initializeApp(firebaseConfig) : getApp();
-};
+// Singleton pattern to ensure only one instance of Firebase is initialized.
+const app: FirebaseApp = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+const auth: Auth = getAuth(app);
 
-// The main Firebase app instance.
-export const app: FirebaseApp = getFirebaseApp();
-
-// The main Firebase Auth instance, now guaranteed to be initialized.
-export const auth: Auth = getAuth(app);
+// Export the singleton instances.
+export { app, auth };

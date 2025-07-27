@@ -36,6 +36,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
+    // onAuthStateChanged uses the singleton instance from firebase.ts
     const unsubscribe = onAuthStateChanged(firebaseAuthInstance, (currentUser) => {
       setUser(currentUser);
       setLoading(false);
