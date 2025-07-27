@@ -3,56 +3,13 @@ import { initializeApp, getApps, getApp, type FirebaseApp } from 'firebase/app';
 import { getAuth, type Auth } from 'firebase/auth';
 
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  apiKey: "AIzaSyAhu7ZWWNpsPkoGdQV75lDiZvVy6dHdEWM",
+  authDomain: "hangout-helper-m3ubd.firebaseapp.com",
+  projectId: "hangout-helper-m3ubd",
+  storageBucket: "hangout-helper-m3ubd.firebasestorage.app",
+  messagingSenderId: "755444207735",
+  appId: "1:755444207735:web:3e1e2a9fff14567573f672"
 };
-
-// Enhanced diagnostic log - This will log in the BROWSER console
-if (typeof window !== 'undefined') {
-  console.log('--- Firebase Initialization Diagnostics (Client-Side) ---');
-  const expectedVars = [
-    'NEXT_PUBLIC_FIREBASE_API_KEY',
-    'NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN',
-    'NEXT_PUBLIC_FIREBASE_PROJECT_ID',
-    'NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID',
-    'NEXT_PUBLIC_FIREBASE_APP_ID',
-    'NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET', // Often optional but good to check
-  ];
-  let allVarsPresent = true;
-  let criticalVarMissing = false;
-
-  console.log('Reading Firebase config from process.env (Next.js automatically exposes NEXT_PUBLIC_ vars to the browser):');
-  expectedVars.forEach(varName => {
-    const value = process.env[varName];
-    if (value && value.trim() !== '') {
-      console.log(`  ✅ ${varName} is PRESENT (length: ${value.length})`);
-    } else {
-      console.error(`  ❌ CRITICAL: ${varName} is MISSING or EMPTY in .env.local or not loaded by Next.js!`);
-      allVarsPresent = false;
-      if (varName === 'NEXT_PUBLIC_FIREBASE_API_KEY') {
-        criticalVarMissing = true;
-      }
-    }
-  });
-
-  if (allVarsPresent) {
-    console.log('All expected Firebase environment variables appear to be loaded by Next.js into the browser environment.');
-    console.log('If you are still seeing "auth/invalid-api-key":');
-    console.log('1. Double-check that the API_KEY value in your .env.local file is an EXACT MATCH from your Firebase project console.');
-    console.log('2. Ensure you have FULLY RESTARTED your Next.js development server (e.g., `npm run dev`) after creating/modifying .env.local.');
-  } else {
-    console.error('One or more Firebase environment variables are missing or empty in the browser environment. Firebase initialization WILL LIKELY FAIL.');
-    if (criticalVarMissing) {
-      console.error('Specifically, NEXT_PUBLIC_FIREBASE_API_KEY is missing or empty. This is essential.');
-    }
-    console.error('Please ensure your .env.local file is correctly set up in the project root with all NEXT_PUBLIC_ prefixed variables, and that you have restarted your development server.');
-  }
-  console.log('--- End Firebase Diagnostics ---');
-}
 
 
 let app: FirebaseApp;
@@ -93,7 +50,7 @@ if (
   }
 
 } else {
-  console.error("Firebase configuration is missing critical environment variables (checked before initializeApp). Firebase SDK will not be initialized.");
+  console.error("Firebase configuration is missing critical values. Firebase SDK will not be initialized.");
   // @ts-ignore
   app = null;
   // @ts-ignore
