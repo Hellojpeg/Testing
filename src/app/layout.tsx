@@ -10,8 +10,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'Beautiful Ideas',
-  description: 'A collection of tools for beautiful ideas.',
+  title: 'Funding Finder USA',
+  description: 'Find the latest scholarships and U.S. grant opportunities in one place.',
 };
 
 export default function RootLayout({
@@ -21,11 +21,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={inter.variable}>
-      <body className="antialiased flex flex-col min-h-screen font-sans">
+      <body className="flex min-h-screen flex-col font-sans antialiased">
         <Header />
-        <main className="flex-grow container mx-auto px-4 py-8">
-          {children}
-        </main>
+        <main className="container mx-auto flex-grow px-4 py-8">{children}</main>
         <Toaster />
       </body>
     </html>
